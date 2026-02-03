@@ -6,6 +6,8 @@ import Navbar from '@/components/Navbar_Lainnya_Perpus';
 import WarningModal from '@/app/profile_perpus/WarningLogout';
 import { useAuth } from '@/context/authContext';
 import useAuthMiddleware from '@/hooks/auth';
+import { getStorageUrl } from '@/helpers/storage';
+
 
 function Page() {
   useAuthMiddleware();
@@ -67,7 +69,7 @@ function Page() {
           {/* Profile Image */}
           <div className="flex justify-center items-center mb-6">
             <Image
-              src={user.avatar ? `http://localhost:8000/storage/${user.avatar}` : "/assets/Class/Icon_user.png"}
+              src={user.avatar ? getStorageUrl(user.avatar) : "/assets/Class/Icon_user.png"}
               alt="Profile Picture"
               width={200}
               height={200}

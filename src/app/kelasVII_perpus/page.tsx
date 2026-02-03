@@ -6,6 +6,8 @@ import Navbar from '@/components/Navbar_Perpus';
 import { useBook } from '@/context/bookContext';
 import useAuthMiddleware from '@/hooks/auth';
 import { useAuth } from '@/context/authContext';
+import { getStorageUrl } from '@/helpers/storage';
+
 
 interface Book {
   id: number;
@@ -33,7 +35,7 @@ function Page() {
   useEffect(() => {
     const processedBooks = kelas7Books.map((book: Book) => {
       const coverUrl = book.cover 
-        ? `http://localhost:8000/storage/${book.cover}` 
+        ? getStorageUrl(book.cover) 
         : '/assets/default-cover.png';
       
       // console.log(`Cover URL for Book ID ${book.id}:`, coverUrl);

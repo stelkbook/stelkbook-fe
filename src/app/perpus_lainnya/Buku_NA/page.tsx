@@ -7,6 +7,8 @@ import WarningModalBuku from "./WarningModalBuku3";
 import PageFlipBook from "@/components/PageFlipBook2";
 import Navbar from "@/components/Navbar_Lainnya_Perpus";
 import { useBook } from "@/context/bookContext";
+import { getStorageUrl } from '@/helpers/storage';
+
 
 interface Book {
   id: number;
@@ -72,7 +74,7 @@ const Page: React.FC = () => {
   if (!book) return null;
 
   // Updated PDF URL logic from code 2
-  const pdfUrl = book.isi.startsWith('http') ? book.isi : `http://localhost:8000/storage/${book.isi}`;
+  const pdfUrl = book.isi.startsWith('http') ? book.isi : getStorageUrl(book.isi);
 
   return (
     <div className="h-screen p-8 bg-gray-50 overflow-y-auto">
@@ -97,7 +99,7 @@ const Page: React.FC = () => {
         {/* Kiri */}
         <div className="flex flex-col items-center lg:items-start">
           <Image
-            src={`http://localhost:8000/storage/${book.cover}`}
+            src={getStorageUrl(book.cover)}
             alt="Cover Buku"
             width={200}
             height={280}

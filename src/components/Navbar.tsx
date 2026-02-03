@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
 import { useAuth } from "@/context/authContext";
+import { getStorageUrl } from '@/helpers/storage';
+
 
 const Navbar: React.FC = () => {
   const {user} = useAuth()
@@ -96,7 +98,7 @@ const Navbar: React.FC = () => {
         className="cursor-pointer p-2"  
         onClick={() => handleNavigation("/profile")}
       >
-        <Image src={user?.avatar ? `http://localhost:8000/storage/${user?.avatar}` : "/assets/Class/Icon_user.png"} alt="User Icon" width={30} height={30} quality={100}className="rounded-full object-cover md:w-[35px] md:h-[35px]" />
+        <Image src={user?.avatar ? getStorageUrl(user?.avatar) : "/assets/Class/Icon_user.png"} alt="User Icon" width={30} height={30} quality={100}className="rounded-full object-cover md:w-[35px] md:h-[35px]" />
       </div>
     </div>
   </div>

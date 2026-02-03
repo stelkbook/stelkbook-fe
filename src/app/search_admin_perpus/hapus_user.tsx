@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/context/authContext';
+import { getStorageUrl } from '@/helpers/storage';
+
 
 type ConfirmationModalProps = {
   isOpen: boolean;
@@ -52,7 +54,7 @@ const HapusUserModal: React.FC<ConfirmationModalProps> = ({
             <Image
               src={
                 perpus.avatar
-                  ? `http://localhost:8000/storage/${perpus.avatar}`
+                  ? getStorageUrl(perpus.avatar)
                   : "/assets/Class/icon_user.png"
               }
               alt="User Icon"

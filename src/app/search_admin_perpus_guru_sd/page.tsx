@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import ConfirmationModal from "./hapus_user";
 import Navbar from "@/components/Navbar_Admin_Perpus_Guru_SD";
+import { getStorageUrl } from '@/helpers/storage';
+
 
 interface Guru {
   id: string;
@@ -131,7 +133,7 @@ function SearchGuruSD() {
                   <Image
                     src={
                       guru.avatar
-                        ? `http://localhost:8000/storage/${guru.avatar}`
+                        ? getStorageUrl(guru.avatar)
                         : "/assets/Class/icon_user.png"
                     }
                     alt="User Icon"

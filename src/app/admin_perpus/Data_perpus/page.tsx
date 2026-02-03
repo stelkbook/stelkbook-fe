@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import HapusUserModal from "./hapus_user";
 import Navbar from "@/components/Navbar_Admin_Perpus2";
 import { useAuth } from "@/context/authContext";
+import { getStorageUrl } from '@/helpers/storage';
+
 
 interface Perpus {
   id: string;
@@ -126,7 +128,7 @@ function Page() {
                   <Image
                     src={
                       perpus.avatar
-                        ? `http://localhost:8000/storage/${perpus.avatar}`
+                        ? getStorageUrl(perpus.avatar)
                         : "/assets/Class/icon_user.png"
                     }
                     alt="User Icon"

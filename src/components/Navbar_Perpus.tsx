@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Sidebar from "./Sidebar_perpus";
 import { useAuth } from "@/context/authContext";
+import { getStorageUrl } from '@/helpers/storage';
+
 
 const Navbar_Perpus: React.FC = () => {
   const { user } = useAuth();
@@ -100,7 +102,7 @@ const Navbar_Perpus: React.FC = () => {
               <Image
                 src={
                   user?.avatar
-                    ? `http://localhost:8000/storage/${user?.avatar}`
+                    ? getStorageUrl(user?.avatar)
                     : "/assets/Class/Icon_user.png"
                 }
                 alt="User Icon"

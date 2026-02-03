@@ -5,6 +5,8 @@ import NotificationSuccessful from './NotificationEditSuccessful';
 import Navbar from '@/components/Navbar_Lainnya_Perpus';
 import { useBook } from '@/context/bookContext';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { getStorageUrl } from '@/helpers/storage';
+
 
 // Loading Spinner Component
 const LoadingSpinner = () => (
@@ -58,7 +60,7 @@ function Page() {
                     setPenerbit(data.penerbit);
                     setExistingCover(
                         data.cover
-                            ? `http://localhost:8000/storage/${data.cover}`
+                            ? getStorageUrl(data.cover)
                             : '/assets/default-cover.png'
                     );
                     const fileName = data.isi?.split('/').pop() || '';

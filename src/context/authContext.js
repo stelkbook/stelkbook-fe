@@ -46,9 +46,14 @@ const [guruSmkDetail, setGuruSmkDetail] = useState(null); // Data spesifik guru 
         });
         setUser(res.data);
       } catch (error) {
-        console.error("Gagal mengambil data pengguna:", error);
+        if (error.response && error.response.status === 401) {
+            console.warn("Session expired, logging out.");
+        } else {
+            console.error("Gagal mengambil data pengguna:", error);
+        }
         localStorage.removeItem('auth_token');
-        setUser({});
+        setUser(null);
+        router.push('/');
       } finally {
         setLoading(false);
       }

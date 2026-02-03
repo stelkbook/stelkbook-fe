@@ -6,6 +6,8 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar_Lainnya_Guru"; // ✅ Navbar khusus Guru
 import PageFlipBook from "@/components/PageFlipBook2";
 import { useBook } from "@/context/bookContext";
+import { getStorageUrl } from '@/helpers/storage';
+
 
 interface Book {
   id: number;
@@ -58,10 +60,10 @@ const Page: React.FC = () => {
   // ✅ Samakan logika URL seperti kode kedua
   const pdfUrl = book.isi.startsWith("http")
     ? book.isi
-    : `http://localhost:8000/storage/${book.isi}`;
+    : getStorageUrl(book.isi);
   const coverUrl = book.cover.startsWith("http")
     ? book.cover
-    : `http://localhost:8000/storage/${book.cover}`;
+    : getStorageUrl(book.cover);
 
   // ✅ fungsi download
   const handleDownload = () => {

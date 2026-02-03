@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getStorageUrl } from '@/helpers/storage';
+
 
 export async function GET(
     req: NextRequest,
@@ -7,7 +9,7 @@ export async function GET(
     const { path } = await params;
     const pathString = path.join('/');
     // Map the path to the Laravel storage URL
-    const backendUrl = `http://localhost:8000/storage/${pathString}`;
+    const backendUrl = getStorageUrl(pathString);
 
     try {
         const response = await fetch(backendUrl);

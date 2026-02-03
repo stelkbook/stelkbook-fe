@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar_Guru";
 import { useBook } from "@/context/bookContext";
+import { getStorageUrl } from '@/helpers/storage';
+
 
 interface Book {
   id: number;
@@ -42,7 +44,7 @@ const SearchGuruPage = () => {
     if (query && books.length > 0) {
       const processedBooks = books.map((book: any) => {
         const coverUrl = book.cover
-          ? `http://localhost:8000/storage/${book.cover}`
+          ? getStorageUrl(book.cover)
           : "/assets/default-cover.png";
 
         return {

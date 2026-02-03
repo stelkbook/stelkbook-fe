@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/authContext";
+import { getStorageUrl } from '@/helpers/storage';
+
 
 const Navbar: React.FC = () => {
   const { user } = useAuth();
@@ -91,7 +93,7 @@ const Navbar: React.FC = () => {
             >
               <div className="w-[30px] h-[30px] md:w-[35px] md:h-[35px] relative rounded-full overflow-hidden">
                 <Image
-                  src={user?.avatar ? `http://localhost:8000/storage/${user?.avatar}` : "/assets/Class/Icon_user.png"}
+                  src={user?.avatar ? getStorageUrl(user?.avatar) : "/assets/Class/Icon_user.png"}
                   alt="User Icon"
                   fill
                   sizes="35px"

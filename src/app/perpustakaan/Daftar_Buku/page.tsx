@@ -9,6 +9,7 @@ import { useAuth } from '@/context/authContext';
 import Pagination from '@/components/Pagination';
 import SortFilter, { SortOption } from '@/components/SortFilter';
 import FilterCheckbox, { FilterState } from '@/components/FilterCheckbox';
+import { getStorageUrl } from '@/helpers/storage';
 
 interface Book {
   id: number;
@@ -64,15 +65,8 @@ function BookContent() {
       });
 
       const mappedBooks: Book[] = processedBooks.map((book: any) => {
-        let coverUrl = '/assets/default-cover.png';
-        
-        if (book.cover_url) {
-             coverUrl = book.cover_url.startsWith('http') ? book.cover_url : `http://localhost:8000${book.cover_url}`;
-        } else if (book.cover_image) {
-             coverUrl = `http://localhost:8000/storage/${book.cover_image}`;
-        } else if (book.cover) {
-             coverUrl = `http://localhost:8000/storage/${book.cover}`;
-        }
+        const rawCover = book.cover_url || book.cover_image || book.cover;
+        const coverUrl = getStorageUrl(rawCover);
 
         return {
           id: book.id,

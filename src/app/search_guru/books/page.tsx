@@ -6,6 +6,8 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar_Lainnya_Guru";
 import PageFlipBook from "@/components/PageFlipBook2";
 import { useBook } from "@/context/bookContext";
+import { getStorageUrl } from '@/helpers/storage';
+
 
 interface Book {
   id: number;
@@ -54,8 +56,8 @@ const Page = () => {
   }
   if (!book) return <div>Buku tidak ditemukan.</div>;
 
-  const pdfUrl = `http://localhost:8000/storage/${book.isi}`;
-  const coverUrl = `http://localhost:8000/storage/${book.cover}`;
+  const pdfUrl = getStorageUrl(book.isi);
+  const coverUrl = getStorageUrl(book.cover);
 
   const handleDownload = () => {
     window.open(pdfUrl, "_blank");

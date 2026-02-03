@@ -7,10 +7,18 @@
   transition: transform 0.2s;
   visibility: hidden;
   overflow: hidden;
+  perspective: 1500px; /* 3D Perspective */
+}
+
+/* Slight left tilt effect */
+.book-container:not(:hover) {
+    transform: rotateY(-5deg) scale(0.98);
+    box-shadow: -10px 10px 20px rgba(0,0,0,0.2);
 }
 
 .book-container:hover {
-  transform: scale(1.01);
+  transform: rotateY(0deg) scale(1);
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
 }
 
 canvas {
@@ -54,4 +62,14 @@ body.no-scroll {
   .book-container {
     width: 100%;
   }
+}
+
+/* Hide Scrollbar Utility */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }

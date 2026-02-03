@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/context/authContext'; // Impor useAuth
+import { getStorageUrl } from '@/helpers/storage';
+
 
 interface Guru {
   id: string;
@@ -52,7 +54,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
               <Image
                                     src={
                                       guru.avatar
-                                        ? `http://localhost:8000/storage/${guru.avatar}`
+                                        ? getStorageUrl(guru.avatar)
                                         : "/assets/Class/icon_user.png"
                                     }
                                     alt="User Icon"

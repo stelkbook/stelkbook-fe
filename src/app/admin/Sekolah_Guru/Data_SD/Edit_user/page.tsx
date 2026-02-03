@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/authContext';
 import Head from 'next/head';
+import { getStorageUrl } from '@/helpers/storage';
+
 
 function Page() {
   const router = useRouter();
@@ -52,7 +54,7 @@ function Page() {
       });
 
       if (guruSdDetail.avatar) {
-        setPreviewImage(`http://localhost:8000/storage/${guruSdDetail.avatar}`);
+        setPreviewImage(getStorageUrl(guruSdDetail.avatar));
       } else {
         setPreviewImage(null);
       }

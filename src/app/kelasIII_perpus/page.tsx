@@ -8,6 +8,8 @@ import useAuthMiddleware from '@/hooks/auth';
 import { useAuth } from '@/context/authContext';
 import Pagination from '@/components/Pagination';
 import SortFilter, { SortOption } from '@/components/SortFilter';
+import { getStorageUrl } from '@/helpers/storage';
+
 
 interface Book {
   id: number;
@@ -56,7 +58,7 @@ function Kelas3PerpusContent() {
     if (kelas3Books) {
       const processedBooks = kelas3Books.map((book: any) => {
         const coverUrl = book.cover 
-          ? `http://localhost:8000/storage/${book.cover}` 
+          ? getStorageUrl(book.cover) 
           : '/assets/default-cover.png';
         
         return {

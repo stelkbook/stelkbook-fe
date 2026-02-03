@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import ConfirmationModal from "./hapus_user";
 import Navbar from "@/components/Navbar_Admin_Perpus_SMP";
+import { getStorageUrl } from '@/helpers/storage';
+
 
 interface Siswa {
   id: string;
@@ -131,7 +133,7 @@ const SearchSiswaSMP: React.FC = () => {
                   <Image
                     src={
                       siswa.avatar
-                        ? `http://localhost:8000/storage/${siswa.avatar}`
+                        ? getStorageUrl(siswa.avatar)
                         : "/assets/Class/icon_user.png"
                     }
                     alt="User Icon"

@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useBook } from "@/context/bookContext";
+import { getStorageUrl } from '@/helpers/storage';
+
 
 type WarningModalProps = {
   isVisible: boolean;
@@ -55,7 +57,7 @@ const WarningModalBuku: React.FC<WarningModalProps> = ({
           {/* Book Cover */}
           <div>
             <Image
-              src={`http://localhost:8000/storage/${book.cover}`}
+              src={getStorageUrl(book.cover)}
               alt={book.judul}
               width={70}
               height={100}

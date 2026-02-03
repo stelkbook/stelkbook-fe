@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import ConfirmationModal from "./hapus_user";
 import Navbar from "@/components/Navbar_Admin_SD";
 import { useAuth } from "@/context/authContext";
+import { getStorageUrl } from '@/helpers/storage';
+
 
 interface Siswa {
   id: string;
@@ -119,7 +121,7 @@ function DataSiswaSD() {
                   <Image
                     src={
                       siswa.avatar
-                        ? `http://localhost:8000/storage/${siswa.avatar}`
+                        ? getStorageUrl(siswa.avatar)
                         : "/assets/Class/icon_user.png"
                     }
                     alt="User Icon"

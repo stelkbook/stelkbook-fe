@@ -9,6 +9,8 @@ import { useAuth } from '@/context/authContext';
 import Pagination from '@/components/Pagination';
 import SortFilter, { SortOption } from '@/components/SortFilter';
 import BookCard from '@/components/BookCard';
+import { getStorageUrl } from '@/helpers/storage';
+
 
 interface Book {
   id: number;
@@ -57,7 +59,7 @@ function Kelas2PerpusContent() {
     if (kelas2Books) {
       const processedBooks = kelas2Books.map((book: any) => {
         const coverUrl = book.cover 
-          ? `http://localhost:8000/storage/${book.cover}` 
+          ? getStorageUrl(book.cover) 
           : '/assets/default-cover.png';
         
         return {

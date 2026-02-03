@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/authContext';
 import Head from 'next/head';
+import { getStorageUrl } from '@/helpers/storage';
+
 
 function Page() {
   const router = useRouter();
@@ -61,7 +63,7 @@ function Page() {
         setPreviewImage(null);
         setSelectedFile(null);
       } else {
-        setPreviewImage(`http://localhost:8000/storage/${siswaSmkDetail.avatar}`);
+        setPreviewImage(getStorageUrl(siswaSmkDetail.avatar));
       }
     }
   }, [siswaSmkDetail]);
