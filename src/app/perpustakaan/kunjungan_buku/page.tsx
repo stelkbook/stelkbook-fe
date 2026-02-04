@@ -177,7 +177,7 @@ export default function KunjunganPage() {
              <div className="w-full max-w-[112px] mx-auto">
   <div className="relative aspect-[3/4]"> {/* 3:4 aspect ratio (120:160) */}
     <Image
-      src={`http://localhost:8000${bukuPalingSeringDibaca.cover_url}`}
+      src={`${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://stelkbook-be-production.up.railway.app'}${bukuPalingSeringDibaca.cover_url}`}
       alt={bukuPalingSeringDibaca.judul}
       fill
       className="object-cover rounded mb-4"

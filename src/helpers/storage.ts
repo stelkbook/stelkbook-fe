@@ -15,5 +15,6 @@ export const getStorageUrl = (path: string | null | undefined) => {
   }
 
   // Fallback for other paths (or legacy)
-  return `http://localhost:8000/storage/${path}`;
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://stelkbook-be-production.up.railway.app';
+  return `${backendUrl}/storage/${path}`;
 };
