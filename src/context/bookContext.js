@@ -744,8 +744,10 @@ export const BookProvider = ({ children }) => {
 
     const fetchBookById = useCallback(async (id) => {
         setLoading(true);
+        console.log(`[BookContext] Fetching book with ID: ${id}`);
         try {
             const response = await axios.get(`/books/${id}`);
+            console.log("[BookContext] Fetch success:", response.data);
             const data = response.data;
             return {
                 ...data,
@@ -754,7 +756,10 @@ export const BookProvider = ({ children }) => {
                 tahun: data.tahun_terbit || data.tahun,
             };
         } catch (err) {
-            setError(err.message);
+            console.error("[BookContext] Fetch error:", err);
+            const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message;
+            setError(errorMsg);
+            throw new Error(errorMsg);
         } finally {
             setLoading(false);
         }
