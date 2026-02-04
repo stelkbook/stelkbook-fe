@@ -15,7 +15,7 @@ const LoadingSpinner = () => (
     </div>
 );
 
-function Page() {
+function EditBukuContent() {
     const [showNotification, setShowNotification] = useState(false);
     const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -349,4 +349,10 @@ function Page() {
     );
 }
 
-export default Page;
+export default function Page() {
+    return (
+        <Suspense fallback={<LoadingSpinner />}>
+            <EditBukuContent />
+        </Suspense>
+    );
+}

@@ -1,13 +1,16 @@
+'use client';
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
 interface WarningModalProps {
   onClose: () => void;
 }
 
 const WarningModal: React.FC<WarningModalProps> = ({ onClose }) => {
+  const router = useRouter();
   const handleLogout = () => {
     // Add any logout logic here (e.g., clearing session, user data, etc.)
-    window.location.href = "http://localhost:3000/";  // Redirect to the home page
+    router.push('/');  // Redirect to the home page
   };
 
   return (

@@ -5,11 +5,13 @@ const api =axios.create({
     // baseURL:"http://192.168.91.145:8080/api"
 })
 api.interceptors.request.use((config) => {
-    const token=localStorage.getItem("auth_token")
-    if(token){
-        config.headers.Authorization = `Bearer ${token}`
+    if (typeof window !== 'undefined') {
+        const token = localStorage.getItem("auth_token");
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
     }
-    return config
+    return config;
 })
 
 export default api;

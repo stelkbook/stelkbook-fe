@@ -16,7 +16,7 @@ interface Guru {
   avatar?: string;
 }
 
-function SearchGuruSD() {
+function SearchGuruSDContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedGuru, setSelectedGuru] = useState<Guru | null>(null);
   const [filteredGuru, setFilteredGuru] = useState<Guru[]>([]);
@@ -203,4 +203,10 @@ function SearchGuruSD() {
   );
 }
 
-export default SearchGuruSD;
+export default function SearchGuruSD() {
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <SearchGuruSDContent />
+    </React.Suspense>
+  );
+}

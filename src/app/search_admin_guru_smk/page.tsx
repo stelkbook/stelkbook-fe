@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useAuth } from "@/context/authContext";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -17,7 +17,7 @@ interface Guru {
   kelas: string;
 }
 
-function SearchGuruSMK() {
+function SearchGuruSMKContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedGuru, setSelectedGuru] = useState<Guru | null>(null);
   const [filteredGuru, setFilteredGuru] = useState<Guru[]>([]);
@@ -204,4 +204,14 @@ function SearchGuruSMK() {
   );
 }
 
-export default SearchGuruSMK;
+export default function SearchGuruSMK() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+      </div>
+    }>
+      <SearchGuruSMKContent />
+    </Suspense>
+  );
+}

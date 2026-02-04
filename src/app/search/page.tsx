@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
@@ -18,7 +18,7 @@ interface Book {
   path?: string;
 }
 
-const SearchPage = () => {
+const SearchPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const query = searchParams.get("q")?.toLowerCase() || "";
@@ -98,56 +98,55 @@ const SearchPage = () => {
         </h1>
         <p className="text-gray-500 mt-2 text-sm md:text-base">
           Menampilkan buku untuk:{" "}
-          <span className="text-blue-600 font-medium">"{query}"</span>
+          <span className="font-semibold text-gray-800">"{query}"</span>
         </p>
       </div>
 
-      {filteredBooks.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredBooks.map((book) => (
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        {filteredBooks.length > 0 ? (
+          filteredBooks.map((book) => (
             <div
               key={book.id}
+              className="cursor-pointer group relative flex flex-col items-center text-center"
               onClick={() => navigateToBook(book.id)}
-              className="bg-white hover:bg-gray-100 hover:scale-105 transition-transform duration-200 rounded-lg p-4 cursor-pointer flex flex-col items-center"
             >
-             <div className="w-[150px] h-[200px] relative">
-  <Image
-    src={book.cover}
-    alt={book.judul}
-    fill
-    sizes="300px"
-    className="rounded-md object-cover"
-    priority = {true}
-    onError={(e) => {
-      const target = e.target as HTMLImageElement;
-      target.src = '/assets/default-cover.png';
-    }}
-  />
-</div>
-
-              <h3 className="mt-4 text-center text-sm font-semibold text-gray-800">
+              <div className="w-full aspect-[3/4] overflow-hidden rounded-lg shadow-md bg-gray-200">
+                <Image
+                  src={book.cover}
+                  alt={book.judul}
+                  width={150}
+                  height={220}
+                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                  style={{ width: "100%", height: "100%" }}
+                />
+              </div>
+              <h3 className="mt-3 text-sm font-semibold text-gray-800 line-clamp-2">
                 {book.judul}
               </h3>
-              {book.penulis && (
-                <p className="text-xs text-gray-500">{book.penulis}</p>
-              )}
-              {book.kategori && (
-                <p className="text-xs text-gray-500 font-medium">
-                  {book.kategori}
-                </p>
-              )}
+              <p className="text-xs text-gray-500 mt-1">{book.penulis}</p>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center text-gray-500 mt-20">
-          <p className="text-lg">
-            {query ? "Tidak ada hasil ditemukan." : "Masukkan kata kunci pencarian."}
-          </p>
-        </div>
-      )}
+          ))
+        ) : (
+          <div className="col-span-full text-center py-20">
+            <p className="text-gray-500 text-lg">
+              Tidak ada buku yang cocok dengan pencarian Anda.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default SearchPage;
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col justify-center items-center bg-white">
+        <div className="w-14 h-14 border-4 border-red border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-gray-600 mt-4 text-lg">Memuat buku...</p>
+      </div>
+    }>
+      <SearchPageContent />
+    </Suspense>
+  );
+}

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import NotificationSuccessful from './NotificationEditSuccessful';
 import Navbar from '@/components/Navbar_Lainnya_Perpus';
@@ -8,7 +8,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { getStorageUrl } from '@/helpers/storage';
 
 
-function Page() {
+// Loading Spinner Component
+const LoadingSpinner = () => (
+    <div className="flex justify-center items-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+    </div>
+);
+
+function EditBukuContent() {
     const [showNotification, setShowNotification] = useState(false);
     const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -313,4 +320,10 @@ function Page() {
     );
 }
 
-export default Page;
+export default function Page() {
+    return (
+        <Suspense fallback={<LoadingSpinner />}>
+            <EditBukuContent />
+        </Suspense>
+    );
+}

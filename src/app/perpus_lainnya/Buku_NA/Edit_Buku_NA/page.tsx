@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import NotificationSuccessful from './NotificationEditSuccessful';
 import Navbar from '@/components/Navbar_Lainnya_Perpus';
@@ -15,7 +15,7 @@ const LoadingSpinner = () => (
     </div>
 );
 
-function Page() {
+function EditBookContent() {
     const [showNotification, setShowNotification] = useState(false);
     const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -341,4 +341,10 @@ function Page() {
     );
 }
 
-export default Page;
+export default function Page() {
+    return (
+        <Suspense fallback={<LoadingSpinner />}>
+            <EditBookContent />
+        </Suspense>
+    );
+}

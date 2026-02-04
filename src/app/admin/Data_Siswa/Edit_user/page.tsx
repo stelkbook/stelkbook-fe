@@ -1,11 +1,13 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/authContext'; // Import useAuth
 
-function Page() {
+function EditUserSiswaContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id');
   const { fetchSiswa, siswaDetail, updateSiswa } = useAuth(); // Ambil fungsi dan state dari AuthContext
   const [form, setForm] = useState({
     id: '',
@@ -18,10 +20,6 @@ function Page() {
     kelas: '',
   });
   const [showPassword, setShowPassword] = useState(false); // State untuk toggle password visibility
-
-  // Ambil ID dari query parameter
-  const searchParams = new URLSearchParams(window.location.search);
-  const id = searchParams.get('id');
 
   // Ambil data siswa berdasarkan ID saat komponen dimuat
   useEffect(() => {
@@ -321,4 +319,10 @@ function Page() {
   );
 }
 
-export default Page;
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EditUserSiswaContent />
+    </Suspense>
+  );
+}

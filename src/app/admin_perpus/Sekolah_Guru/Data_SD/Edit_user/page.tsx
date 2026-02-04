@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/authContext';
@@ -7,7 +7,7 @@ import Head from 'next/head';
 import { getStorageUrl } from '@/helpers/storage';
 
 
-function Page() {
+function EditUserContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { fetchGuruSd, guruSdDetail, updateGuruSd } = useAuth();
@@ -201,150 +201,114 @@ function Page() {
             </div>
             <input
               type="file"
-              ref={fileInputRef}
               accept="image/*"
+              ref={fileInputRef}
               onChange={handleFileChange}
               className="hidden"
             />
-            {previewImage && (
-              <button
-                type="button"
-                onClick={triggerFileInput}
-                className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                </svg>
-              </button>
-            )}
+            <p className="text-xs text-gray-500 text-center max-w-[150px]">
+              Klik foto untuk mengubah avatar
+            </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="grid gap-3 md:gap-4 w-full">
-            <div>
-              <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Username</label>
-              <input
-                type="text"
-                name="username"
-                value={form.username}
-                onChange={handleInputChange}
-                className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleInputChange}
-                className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
-                required
-              />
-            </div>
-
-            <div className="relative">
-              <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={form.password}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 pr-10"
-                  placeholder="Kosongkan jika tidak ingin mengubah"
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  {showPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
-                      <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {showPassword ? 'Password terlihat' : 'Password tersembunyi'}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">NIP</label>
-              <input
-                type="text"
-                name="nip"
-                value={form.nip}
-                onChange={handleInputChange}
-                className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
-                required
-              />
-            </div>
-
-            <div className="flex flex-col md:flex-row md:space-x-4 space-y-3 md:space-y-0">
-              <div className="w-full md:w-1/2">
-                <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Sekolah</label>
+          <form onSubmit={handleSubmit} className="flex-1 w-full space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Username</label>
                 <input
                   type="text"
+                  name="username"
+                  value={form.username}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={form.password}
+                    onChange={handleInputChange}
+                    placeholder="Biarkan kosong jika tidak diubah"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">NIP</label>
+                <input
+                  type="text"
+                  name="nip"
+                  value={form.nip}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Jenis Kelamin</label>
+                <select
+                  name="gender"
+                  value={form.gender}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                  required
+                >
+                  <option value="" disabled>Pilih Gender</option>
+                  <option value="Laki-laki">Laki-laki</option>
+                  <option value="Perempuan">Perempuan</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Sekolah</label>
+                <input
+                  type="text"
+                  name="sekolah"
                   value="SD"
                   readOnly
-                  className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 bg-gray-100"
-                />
-              </div>
-
-              <div className="w-full md:w-1/2">
-                <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Status</label>
-                <input
-                  type="text"
-                  value="Guru"
-                  readOnly
-                  className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 bg-gray-100"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-500 sm:text-sm"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Gender</label>
-              <select
-                name="gender"
-                value={form.gender}
-                onChange={handleInputChange}
-                className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
-                required
-              >
-                <option value="">Pilih Gender</option>
-                <option value="Laki-Laki">Laki-Laki</option>
-                <option value="Perempuan">Perempuan</option>
-              </select>
-            </div>
-
-            <div className="flex justify-center mt-4 md:mt-6">
+            <div className="flex justify-end pt-4">
               <button
                 type="submit"
-                disabled={loading || initialLoading}
-                className="bg-red-500 text-white px-4 py-1.5 md:px-6 md:py-2 text-sm md:text-base rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 disabled:opacity-50 w-full md:w-auto transition-colors"
+                disabled={loading}
+                className="w-full md:w-auto px-6 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
               >
-                {loading ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                    </svg>
-                    Menyimpan...
-                  </span>
-                ) : (
-                  'Selesai'
-                )}
+                {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
               </button>
             </div>
           </form>
@@ -354,4 +318,14 @@ function Page() {
   );
 }
 
-export default Page;
+export default function EditUser() {
+  return (
+    <Suspense fallback={
+      <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-red-500"></div>
+      </div>
+    }>
+      <EditUserContent />
+    </Suspense>
+  );
+}

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import HapusUserModal from "./hapus_user";
@@ -17,7 +17,7 @@ interface Perpus {
   avatar: string;
 }
 
-function SearchPerpus() {
+function SearchPerpusContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPerpus, setSelectedPerpus] = useState({ 
     id: "", 
@@ -98,7 +98,7 @@ function SearchPerpus() {
       <div className="mb-8 flex items-center">
         <p 
           className="text-xl font-semibold text-left font-poppins translate-y-[-15px] hover:underline cursor-pointer"
-          onClick={() => handleButtonClick('admin_perpus/')}
+          onClick={() => handleButtonClick("admin_perpus/Data_perpus")}
         >
           Database Anda
         </p>
@@ -109,15 +109,15 @@ function SearchPerpus() {
             width={10}
             height={16}
             className="translate-y-[-15px] translate-x-[1px]"
-            style={{ width: 'auto', height: 'auto' }}
+            style={{ width: "auto", height: "auto" }}
           />
         </div>
         <p className="text-xl font-semibold text-left font-poppins translate-y-[-15px]">
-          Perpus {query && `- Hasil pencarian: "${query}"`}
+          User Perpus {query && `- Hasil pencarian: "${query}"`}
         </p>
       </div>
 
-      {/* Tambah Perpus Button */}
+      {/* Tombol Tambah Perpus */}
       <div className="relative mb-4">
         <button
           className="absolute right-0 top-0 w-10 h-10 bg-red text-white text-xl rounded-full flex items-center justify-center shadow translate-y-[-60px]"
@@ -135,24 +135,19 @@ function SearchPerpus() {
       ) : (
         <div className="bg-white rounded-lg shadow p-4">
           {filteredPerpus?.length > 0 ? (
-            filteredPerpus?.map((perpus: Perpus) => (
+            filteredPerpus.map((perpus: Perpus) => (
               <div
                 key={perpus.id}
                 className="grid grid-cols-12 gap-4 items-center py-4 border-b"
               >
                 <div className="col-span-4 flex items-center">
                   <Image
-                    src={
-                      perpus.avatar
-                        ? getStorageUrl(perpus.avatar)
-                        : "/assets/Class/icon_user.png"
-                    }
+                    src={perpus.avatar ? getStorageUrl(perpus.avatar) : "/assets/Class/icon_user.png"}
                     alt="User Icon"
                     width={48}
                     height={48}
-                    quality={100}
                     className="object-cover rounded-full mr-3"
-                    style={{ width: '48px', height: '48px' }}
+                    style={{ width: "48px", height: "48px" }}
                   />
                   <div>
                     <p className="font-semibold">{perpus.username}</p>
@@ -170,7 +165,7 @@ function SearchPerpus() {
                       width={16}
                       height={16}
                       className="md:mr-2"
-                      style={{ width: 'auto', height: 'auto' }}
+                      style={{ width: "auto", height: "auto" }}
                     />
                     <span className="hidden md:block">Edit User</span>
                   </button>
@@ -185,7 +180,7 @@ function SearchPerpus() {
                       width={16}
                       height={16}
                       className="md:mr-2"
-                      style={{ width: 'auto', height: 'auto' }}
+                      style={{ width: "auto", height: "auto" }}
                     />
                     <span className="hidden md:block">Hapus User</span>
                   </button>
@@ -194,7 +189,9 @@ function SearchPerpus() {
             ))
           ) : (
             <p className="text-gray-500 text-center py-4">
-              {query ? "Tidak ada hasil ditemukan untuk pencarian Anda." : "Tidak ada data pengurus perpus tersedia."}
+              {query
+                ? "Tidak ada hasil ditemukan untuk pencarian Anda."
+                : "Tidak ada data perpus tersedia."}
             </p>
           )}
         </div>
@@ -212,4 +209,14 @@ function SearchPerpus() {
   );
 }
 
-export default SearchPerpus;
+export default function SearchPerpus() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+      </div>
+    }>
+      <SearchPerpusContent />
+    </Suspense>
+  );
+}

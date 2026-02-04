@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import HapusUserModal from "./hapus_user";
@@ -17,7 +17,7 @@ interface Perpus {
   avatar: string;
 }
 
-function SearchPerpus() {
+function SearchPerpusContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPerpus, setSelectedPerpus] = useState({ 
     id: "", 
@@ -212,4 +212,14 @@ function SearchPerpus() {
   );
 }
 
-export default SearchPerpus;
+export default function SearchPerpus() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+      </div>
+    }>
+      <SearchPerpusContent />
+    </Suspense>
+  );
+}

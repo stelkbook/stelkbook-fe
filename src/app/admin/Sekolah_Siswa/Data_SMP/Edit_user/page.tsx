@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/authContext';
@@ -7,7 +7,7 @@ import Head from 'next/head';
 import { getStorageUrl } from '@/helpers/storage';
 
 
-function Page() {
+function EditUserContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { fetchSiswaSmp, siswaSmpDetail, updateSiswaSmp } = useAuth();
@@ -32,16 +32,17 @@ function Page() {
   const [initialLoading, setInitialLoading] = useState(true);
   const id = searchParams.get('id');
 
+  // Fetch data
   useEffect(() => {
     if (id) {
       setInitialLoading(true);
       setPreviewImage(null);
       setSelectedFile(null);
-
       fetchSiswaSmp(id).finally(() => setInitialLoading(false));
     }
   }, [id, fetchSiswaSmp]);
 
+  // Populate form data
   useEffect(() => {
     if (siswaSmpDetail) {
       setForm({
@@ -126,14 +127,14 @@ function Page() {
         <title>Edit User Siswa SMP</title>
       </Head>
 
-      {/* Loading Overlay */}
+      {/* Loading overlay */}
       {initialLoading && (
         <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-red-500"></div>
         </div>
       )}
 
-      {/* Header Logo */}
+      {/* Header */}
       <header className="flex justify-center items-center mb-4 md:mb-6">
         <div className="flex-shrink-0 cursor-pointer" onClick={() => router.push('/admin')}>
           <div className="relative w-[120px] h-[36px] md:w-[165px] md:h-[50px]">
@@ -149,7 +150,7 @@ function Page() {
         </div>
       </header>
 
-      {/* Decorative Line */}
+      {/* Decorative line */}
       <div className="mb-6 md:mb-8">
         <div className="relative w-full h-[16px] md:h-[20px]">
           <Image
@@ -158,37 +159,32 @@ function Page() {
             fill
             sizes="100vw"
             className="object-cover"
-            priority={false}
           />
         </div>
       </div>
 
-      {/* Breadcrumb */}
+      {/* Breadcrumb navigation */}
       <div className="mb-6 md:mb-8 flex items-center space-x-2">
-        <p
-          className="text-sm md:text-lg font-semibold text-gray-700 hover:underline cursor-pointer"
-          onClick={() => router.push('/admin')}
-        >
+        <p className="text-sm md:text-lg font-semibold text-gray-700 hover:underline cursor-pointer"
+          onClick={() => router.push('/admin')}>
           Database Anda
         </p>
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
         </svg>
-        <p
-          className="text-sm md:text-lg font-semibold text-gray-700 hover:underline cursor-pointer"
-          onClick={() => router.push('/admin/Sekolah_Siswa/Data_SMP')}
-        >
+        <p className="text-sm md:text-lg font-semibold text-gray-700 hover:underline cursor-pointer"
+          onClick={() => router.push('/admin/Sekolah_Siswa/Data_SMP')}>
           Siswa SMP
         </p>
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
         </svg>
-        <p className="text-sm md:text-lg font-medium text-gray-900">Edit User</p>
+        <p className="text-sm md:text-lg font-medium text-gray-900 font-poppins">Edit User</p>
       </div>
 
       <div className="flex justify-center">
         <div className="bg-white border border-gray-300 rounded-lg p-4 md:p-8 shadow-lg w-full max-w-4xl flex flex-col md:flex-row md:items-center md:space-x-6 space-y-6 md:space-y-0">
-          {/* Avatar Upload */}
+          {/* Profile Image */}
           <div className="flex flex-col items-center space-y-2 mx-auto md:mx-0">
             <div
               className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors relative"
@@ -256,7 +252,6 @@ function Page() {
               />
             </div>
 
-            {/* Password */}
             <div className="relative">
               <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Password</label>
               <div className="relative">
@@ -291,7 +286,6 @@ function Page() {
               </p>
             </div>
 
-            {/* NIS */}
             <div>
               <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">NIS</label>
               <input
@@ -304,7 +298,6 @@ function Page() {
               />
             </div>
 
-            {/* Sekolah & Kelas */}
             <div className="flex flex-col md:flex-row md:space-x-4 space-y-3 md:space-y-0">
               <div className="w-full md:w-1/2">
                 <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Sekolah</label>
@@ -335,7 +328,6 @@ function Page() {
               </div>
             </div>
 
-            {/* Status & Gender */}
             <div className="flex flex-col md:flex-row md:space-x-4 space-y-3 md:space-y-0">
               <div className="w-full md:w-1/2">
                 <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Status</label>
@@ -363,21 +355,13 @@ function Page() {
               </div>
             </div>
 
-            <div className="flex justify-center mt-4 md:mt-6">
+            <div className="flex justify-center mt-4 md:mt-8">
               <button
                 type="submit"
-                disabled={loading || initialLoading}
-                className="bg-red-500 text-white px-4 py-1.5 md:px-6 md:py-2 text-sm md:text-base rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 disabled:opacity-50 w-full md:w-auto transition-colors"
+                disabled={loading}
+                className={`px-6 py-2 md:px-8 md:py-3 rounded-lg shadow-md text-white font-semibold text-sm md:text-base transition ${loading ? 'bg-gray-400' : 'bg-red-500 hover:bg-red-600 focus:ring-2 focus:ring-red-400'}`}
               >
-                {loading ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Memproses...
-                  </span>
-                ) : 'Selesai'}
+                {loading ? 'Menyimpan...' : 'Selesai'}
               </button>
             </div>
           </form>
@@ -387,4 +371,17 @@ function Page() {
   );
 }
 
-export default Page;
+export default function Page() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-600 font-medium">Memuat halaman...</p>
+        </div>
+      </div>
+    }>
+      <EditUserContent />
+    </Suspense>
+  );
+}

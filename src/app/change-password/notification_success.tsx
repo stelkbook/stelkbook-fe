@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
 interface NotificationProps {
   message: string;
@@ -8,10 +9,11 @@ interface NotificationProps {
 }
 
 const NotificationSuccess: React.FC<NotificationProps> = ({ message, description, onClose }) => {
+  const router = useRouter();
 
   const handleRedirect = () => {
     // Direct to a full URL, e.g., 'http://localhost:3000/'
-    window.location.href = '/profile'; // Use full URL for redirection
+    router.push('/profile'); // Use full URL for redirection
     onClose();
   };
 
