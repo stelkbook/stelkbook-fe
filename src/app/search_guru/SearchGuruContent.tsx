@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import Navbar from "@/components/Navbar_Perpus";
+import Navbar from "@/components/Navbar_Guru";
 import { useBook } from "@/context/bookContext";
 import { getStorageUrl } from '@/helpers/storage';
 
@@ -18,7 +18,7 @@ interface Book {
   path?: string;
 }
 
-const SearchContent = () => {
+const SearchGuruContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const query = searchParams.get("q")?.toLowerCase() || "";
@@ -28,7 +28,7 @@ const SearchContent = () => {
   const { books, error, fetchBooks } = useBook();
 
   const navigateToBook = (id: number) => {
-    router.push(`search_perpus/books?id=${id}`);
+    router.push(`search_guru/books?id=${id}`);
   };
 
   useEffect(() => {
@@ -54,7 +54,7 @@ const SearchContent = () => {
           subject: book.subject || "",
           penulis: book.penulis || "Unknown Author",
           kategori: book.kategori || "",
-          path: `search_perpus/books?id=${book.id}`,
+          path: `search_guru/books?id=${book.id}`,
         };
       });
 
@@ -98,7 +98,7 @@ const SearchContent = () => {
         </h1>
         <p className="text-gray-500 mt-2 text-sm md:text-base">
           Menampilkan buku untuk:{" "}
-          <span className="text-blue-600 font-medium">&quot;{query}&quot;</span>
+          <span className="text-blue-600 font-medium">"{query}"</span>
         </p>
       </div>
 
@@ -117,7 +117,7 @@ const SearchContent = () => {
                   fill
                   sizes="300px"
                   className="rounded-md object-cover"
-                  priority={true}
+                  priority = {true}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = "/assets/default-cover.png";
@@ -152,17 +152,4 @@ const SearchContent = () => {
   );
 };
 
-const SearchPage = () => {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex flex-col justify-center items-center bg-white">
-        <div className="w-14 h-14 border-4 border-red border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-600 mt-4 text-lg">Memuat halaman pencarian...</p>
-      </div>
-    }>
-      <SearchContent />
-    </Suspense>
-  );
-};
-
-export default SearchPage;
+export default SearchGuruContent;

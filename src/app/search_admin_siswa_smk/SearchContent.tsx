@@ -1,10 +1,11 @@
-'use client'
-import React, { useState, useEffect, Suspense } from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/authContext";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import ConfirmationModal from "./hapus_user";
-import Navbar from "@/components/Navbar_Admin_SMP";
+import Navbar from "@/components/Navbar_Admin_SMK";
 import { getStorageUrl } from '@/helpers/storage';
 
 
@@ -18,7 +19,7 @@ interface Siswa {
 }
 
 const SearchContent: React.FC = () => {
-  const { siswaSmpData, fetchAllSiswaSmp } = useAuth();
+  const { siswaSmkData, fetchAllSiswaSmk } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSiswa, setSelectedSiswa] = useState<Siswa | null>(null);
   const [filteredSiswa, setFilteredSiswa] = useState<Siswa[]>([]);
@@ -31,19 +32,20 @@ const SearchContent: React.FC = () => {
     const getSiswaData = async () => {
       try {
         setIsLoading(true);
-        await fetchAllSiswaSmp(); // Ambil data siswa SMP
+        await fetchAllSiswaSmk(); // Ambil data siswa SMK
       } catch (error) {
         console.error("Gagal mengambil data siswa:", error);
       } finally {
         setIsLoading(false);
       }
     };
+
     getSiswaData();
-  }, [fetchAllSiswaSmp]);
+  }, [fetchAllSiswaSmk]);
 
   useEffect(() => {
-    if (query && siswaSmpData?.length > 0) {
-      const results = siswaSmpData.filter(
+    if (query && siswaSmkData?.length > 0) {
+      const results = siswaSmkData.filter(
         (siswa: Siswa) =>
           siswa.username.toLowerCase().includes(query) ||
           (siswa.nis && siswa.nis.toLowerCase().includes(query)) ||
@@ -52,9 +54,9 @@ const SearchContent: React.FC = () => {
       );
       setFilteredSiswa(results);
     } else {
-      setFilteredSiswa(siswaSmpData || []);
+      setFilteredSiswa(siswaSmkData || []);
     }
-  }, [query, siswaSmpData]);
+  }, [query, siswaSmkData]);
 
   const handleDeleteSiswa = (siswa: Siswa) => {
     setSelectedSiswa(siswa);
@@ -64,7 +66,7 @@ const SearchContent: React.FC = () => {
   const handleDeleteSuccess = async () => {
     try {
       setIsLoading(true);
-      await fetchAllSiswaSmp();
+      await fetchAllSiswaSmk();
     } catch (error) {
       console.error("Gagal refresh data siswa:", error);
     } finally {
@@ -84,7 +86,7 @@ const SearchContent: React.FC = () => {
 
       {/* Breadcrumb */}
       <div className="mb-8 flex items-center">
-        <p
+        <p 
           className="text-xl font-semibold text-left font-poppins translate-y-[-15px] hover:underline cursor-pointer"
           onClick={() => handleButtonClick('admin/Sekolah_Siswa')}
         >
@@ -101,7 +103,7 @@ const SearchContent: React.FC = () => {
           />
         </div>
         <p className="text-xl font-semibold text-left font-poppins translate-y-[-15px]">
-          Siswa SMP {query && `- Hasil pencarian: "${query}"`}
+          Siswa SMK {query && `- Hasil pencarian: "${query}"`}
         </p>
       </div>
 
@@ -109,7 +111,7 @@ const SearchContent: React.FC = () => {
       <div className="relative mb-4">
         <button
           className="absolute right-0 top-0 w-10 h-10 bg-red text-white text-xl rounded-full flex items-center justify-center shadow translate-y-[-60px]"
-          onClick={() => router.push("/admin/Create_User_Siswa_SMP")}
+          onClick={() => router.push("/admin/Create_User_Siswa_SMK")}
           title="Create_User"
         >
           +
@@ -155,7 +157,7 @@ const SearchContent: React.FC = () => {
                 <div className="col-span-8 flex justify-end space-x-2">
                   <button
                     className="flex flex-col items-center justify-center w-12 h-12 md:w-auto md:h-auto md:flex-row md:px-8 md:py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
-                    onClick={() => router.push(`/admin/Sekolah_Siswa/Data_SMP/Edit_user?id=${siswa.id}`)}
+                    onClick={() => router.push(`/admin/Sekolah_Siswa/Data_SMK/Edit_user?id=${siswa.id}`)}
                   >
                     <Image
                       src="/assets/icon/edit.svg"
@@ -187,7 +189,7 @@ const SearchContent: React.FC = () => {
             ))
           ) : (
             <p className="text-gray-500 text-center py-4">
-              {query ? "Tidak ada hasil ditemukan untuk pencarian Anda." : "Tidak ada data siswa SMP tersedia."}
+              {query ? "Tidak ada hasil ditemukan untuk pencarian Anda." : "Tidak ada data siswa SMK tersedia."}
             </p>
           )}
         </div>
@@ -205,16 +207,4 @@ const SearchContent: React.FC = () => {
   );
 };
 
-const SearchSiswaSMP: React.FC = () => {
-  return (
-    <Suspense fallback={
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
-      </div>
-    }>
-      <SearchContent />
-    </Suspense>
-  );
-};
-
-export default SearchSiswaSMP;
+export default SearchContent;

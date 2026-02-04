@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar_Lainnya";
@@ -22,27 +22,18 @@ interface Book {
 }
 
 const BookContent: React.FC = () => {
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const bookId = parseInt(searchParams.get("id") || "0", 10);
-  const { fetchNonAkademikBookById } = useBook();
+  const { fetchKelas10BookById } = useBook();
 
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const handleRouteNavigation = () => {
-    router.push("/lainnya");
-  };
-
-  const handleScrollToFlipBook = () => {
-    const flipBook = document.getElementById("flipbook");
-    flipBook?.scrollIntoView({ behavior: "smooth" });
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchNonAkademikBookById(bookId);
+        const data = await fetchKelas10BookById(bookId);
         setBook(data);
       } catch (error) {
         console.error("Gagal memuat data buku:", error);
@@ -52,7 +43,7 @@ const BookContent: React.FC = () => {
     };
 
     fetchData();
-  }, [bookId, fetchNonAkademikBookById]);
+  }, [bookId, fetchKelas10BookById]);
 
   if (loading) {
     return (
@@ -86,9 +77,9 @@ const BookContent: React.FC = () => {
 
       {/* Breadcrumb */}
       <div className="mb-8 flex items-center">
-        <p
+        <p 
           className="text-xl font-semibold font-poppins cursor-pointer hover:underline"
-          onClick={() => router.push("/homepage")}
+          onClick={() => router.push('/SMK')}
         >
           Studi Anda
         </p>
@@ -97,11 +88,11 @@ const BookContent: React.FC = () => {
           alt=">"
           width={10}
           height={16}
-          className="mx-1"
+          className="mx-2"
         />
-        <p
+        <p 
           className="text-xl font-semibold font-poppins cursor-pointer hover:underline"
-          onClick={handleRouteNavigation}
+          onClick={() => router.push('/kelasX')}
         >
           {book.kategori}
         </p>
@@ -110,7 +101,7 @@ const BookContent: React.FC = () => {
           alt=">"
           width={10}
           height={16}
-          className="mx-1"
+          className="mx-2"
         />
         <p className="text-xl font-semibold font-poppins">{book.judul}</p>
       </div>
@@ -148,26 +139,11 @@ const BookContent: React.FC = () => {
                 <strong>ISBN:</strong> {book.ISBN}
               </li>
             </ul>
-
-            <div className="mt-4 space-y-2 w-full max-w-xs">
-              <button
-                onClick={handleRouteNavigation}
-                className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
-              >
-                Kembali
-              </button>
-              <button
-                onClick={handleScrollToFlipBook}
-                className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 lg:hidden"
-              >
-                Read Now
-              </button>
-            </div>
           </div>
         </div>
 
         {/* Kanan */}
-        <div id="flipbook" className="flex-grow overflow-x-auto">
+        <div className="flex-grow overflow-x-auto">
           {pdfUrl ? (
             <PageFlipBook pdfUrl={pdfUrl} />
           ) : (
@@ -179,19 +155,4 @@ const BookContent: React.FC = () => {
   );
 };
 
-const Page: React.FC = () => {
-  return (
-    <Suspense fallback={
-      <div className="h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-red border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-600">Memuat buku...</p>
-        </div>
-      </div>
-    }>
-      <BookContent />
-    </Suspense>
-  );
-};
-
-export default Page;
+export default BookContent;

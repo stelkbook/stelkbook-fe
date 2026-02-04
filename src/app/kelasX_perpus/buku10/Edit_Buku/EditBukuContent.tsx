@@ -1,5 +1,6 @@
-'use client';
-import React, { useState, useEffect, Suspense } from 'react';
+"use client";
+
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import NotificationSuccessful from './NotificationEditSuccessful';
 import Navbar from '@/components/Navbar_Lainnya_Perpus';
@@ -15,7 +16,7 @@ const LoadingSpinner = () => (
     </div>
 );
 
-function EditBukuContent() {
+export default function EditBukuContent() {
     const [showNotification, setShowNotification] = useState(false);
     const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -33,7 +34,7 @@ function EditBukuContent() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDataLoading, setIsDataLoading] = useState(true);
 
-    const { fetchKelas2BookById, updateKelas2Book } = useBook();
+    const { fetchKelas10BookById, updateKelas10Book } = useBook();
     const searchParams = useSearchParams();
     const id = searchParams.get('id');
     const router = useRouter();
@@ -41,7 +42,7 @@ function EditBukuContent() {
     useEffect(() => {
         if (id) {
             setIsDataLoading(true);
-            fetchKelas2BookById(id)
+            fetchKelas10BookById(id)
                 .then((data: any) => {
                     setJudul(data.judul);
                     setDeskripsi(data.deskripsi);
@@ -71,7 +72,7 @@ function EditBukuContent() {
                 })
                 .finally(() => setIsDataLoading(false));
         }
-    }, [id, fetchKelas2BookById]);
+    }, [id, fetchKelas10BookById]);
 
     useEffect(() => {
         if (selectedSekolah === 'SD') {
@@ -109,9 +110,9 @@ function EditBukuContent() {
         }
 
         try {
-            await updateKelas2Book(id, formData);
+            await updateKelas10Book(id, formData);
             setShowNotification(true);
-            router.push(`/kelasII_perpus`);
+            router.push(`/kelasX_perpus`);
         } catch (err) {
             console.error('Error updating book:', err);
         } finally {
@@ -346,13 +347,5 @@ function EditBukuContent() {
 
             <NotificationSuccessful show={showNotification} />
         </div>
-    );
-}
-
-export default function Page() {
-    return (
-        <Suspense fallback={<LoadingSpinner />}>
-            <EditBukuContent />
-        </Suspense>
     );
 }

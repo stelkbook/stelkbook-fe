@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import Navbar from "@/components/Navbar_Lainnya";
+import WarningModalBuku from "./WarningModalKelas3";
 import PageFlipBook from "@/components/PageFlipBook2";
+import Navbar from "@/components/Navbar_Lainnya_Perpus";
 import { useBook } from "@/context/bookContext";
 import { getStorageUrl } from '@/helpers/storage';
 
@@ -22,37 +23,40 @@ interface Book {
 }
 
 const BookContent: React.FC = () => {
-  const searchParams = useSearchParams();
+  const [showWarningModal, setShowWarningModal] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const bookId = parseInt(searchParams.get("id") || "0", 10);
-  const { fetchNonAkademikBookById } = useBook();
 
+  const { fetchKelas2BookById, deleteBookKelas2, getBookPdfUrl } = useBook();
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const handleRouteNavigation = () => {
-    router.push("/lainnya");
-  };
-
-  const handleScrollToFlipBook = () => {
-    const flipBook = document.getElementById("flipbook");
-    flipBook?.scrollIntoView({ behavior: "smooth" });
-  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchNonAkademikBookById(bookId);
+        const data = await fetchKelas2BookById(bookId);
         setBook(data);
       } catch (error) {
-        console.error("Gagal memuat data buku:", error);
+        console.error("Error fetching book:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [bookId, fetchNonAkademikBookById]);
+  }, [bookId, fetchKelas2BookById, getBookPdfUrl]);
+
+  const handleDeleteBook = async (id: number) => {
+    try {
+      await deleteBookKelas2(id);
+      setShowWarningModal(false);
+      console.log("Buku dihapus");
+      router.push("/perpus_lainnya");
+    } catch (error) {
+      console.error("Gagal menghapus buku:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -65,15 +69,11 @@ const BookContent: React.FC = () => {
     );
   }
 
-  if (!book) return <div>Buku tidak ditemukan.</div>;
+  if (!book) return null;
 
-  // ✅ Sama seperti kode kedua, cek apakah isi sudah berupa URL penuh
   const pdfUrl = book.isi.startsWith("http")
     ? book.isi
     : getStorageUrl(book.isi);
-  const coverUrl = book.cover.startsWith("http")
-    ? book.cover
-    : getStorageUrl(book.cover);
 
   return (
     <div className="h-screen p-8 bg-gray-50 overflow-y-auto">
@@ -86,12 +86,7 @@ const BookContent: React.FC = () => {
 
       {/* Breadcrumb */}
       <div className="mb-8 flex items-center">
-        <p
-          className="text-xl font-semibold font-poppins cursor-pointer hover:underline"
-          onClick={() => router.push("/homepage")}
-        >
-          Studi Anda
-        </p>
+        <p className="text-xl font-semibold font-poppins">Studi Anda</p>
         <Image
           src="/assets/Kelas_X/Primary_Direct.png"
           alt=">"
@@ -99,12 +94,7 @@ const BookContent: React.FC = () => {
           height={16}
           className="mx-1"
         />
-        <p
-          className="text-xl font-semibold font-poppins cursor-pointer hover:underline"
-          onClick={handleRouteNavigation}
-        >
-          {book.kategori}
-        </p>
+        <p className="text-xl font-semibold font-poppins">{book.kategori}</p>
         <Image
           src="/assets/Kelas_X/Primary_Direct.png"
           alt=">"
@@ -120,7 +110,7 @@ const BookContent: React.FC = () => {
         {/* Kiri */}
         <div className="flex flex-col items-center lg:items-start">
           <Image
-            src={coverUrl}
+            src={getStorageUrl(book.cover)}
             alt="Cover Buku"
             width={200}
             height={280}
@@ -148,26 +138,46 @@ const BookContent: React.FC = () => {
                 <strong>ISBN:</strong> {book.ISBN}
               </li>
             </ul>
+          </div>
 
-            <div className="mt-4 space-y-2 w-full max-w-xs">
-              <button
-                onClick={handleRouteNavigation}
-                className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
-              >
-                Kembali
-              </button>
-              <button
-                onClick={handleScrollToFlipBook}
-                className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 lg:hidden"
-              >
-                Read Now
-              </button>
-            </div>
+          {/* Tombol */}
+          <div className="mt-4 flex flex-col gap-2">
+            <button
+              onClick={() =>
+                router.push(`/kelasII_perpus/buku2/Edit_Buku?id=${book.id}`)
+              }
+              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 flex items-center gap-2"
+            >
+              <Image
+                src="/assets/icon/edit.svg"
+                alt="Edit Icon"
+                width={16}
+                height={16}
+                style={{ width: "auto", height: "auto" }}
+              />
+              <span>Edit Buku</span>
+            </button>
+
+            <button
+              onClick={() => setShowWarningModal(true)}
+              className="bg-red text-white px-4 py-2 rounded-lg shadow-md hover:bg-red flex items-center gap-2"
+            >
+              <div style={{ position: "relative", width: 16, height: 16 }}>
+                <Image
+                  src="/assets/Admin/Delete_user.png"
+                  alt="Delete Icon"
+                  fill
+                  sizes="16px"
+                  style={{ objectFit: "contain" }}
+                />
+              </div>
+              <span>Hapus Buku</span>
+            </button>
           </div>
         </div>
 
         {/* Kanan */}
-        <div id="flipbook" className="flex-grow overflow-x-auto">
+        <div className="flex-grow overflow-x-auto">
           {pdfUrl ? (
             <PageFlipBook pdfUrl={pdfUrl} />
           ) : (
@@ -175,23 +185,17 @@ const BookContent: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Modal */}
+      {showWarningModal && (
+        <WarningModalBuku
+          isVisible={showWarningModal}
+          onClose={() => setShowWarningModal(false)}
+          book={book}
+        />
+      )}
     </div>
   );
 };
 
-const Page: React.FC = () => {
-  return (
-    <Suspense fallback={
-      <div className="h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-red border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-600">Memuat buku...</p>
-        </div>
-      </div>
-    }>
-      <BookContent />
-    </Suspense>
-  );
-};
-
-export default Page;
+export default BookContent;
