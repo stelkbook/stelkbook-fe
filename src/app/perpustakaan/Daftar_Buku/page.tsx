@@ -65,8 +65,9 @@ function BookContent() {
       });
 
       const mappedBooks: Book[] = processedBooks.map((book: any) => {
-        const rawCover = book.cover_url || book.cover_image || book.cover;
-        const coverUrl = getStorageUrl(rawCover);
+        const coverUrl = (book.cover_url && book.cover_url.startsWith('http')) 
+          ? book.cover_url 
+          : getStorageUrl(book.cover);
 
         return {
           id: book.id,

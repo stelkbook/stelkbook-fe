@@ -744,10 +744,8 @@ export const BookProvider = ({ children }) => {
 
     const fetchBookById = useCallback(async (id) => {
         setLoading(true);
-        console.log(`[BookContext] Fetching book with ID: ${id}`);
         try {
             const response = await axios.get(`/books/${id}`);
-            console.log("[BookContext] Fetch success:", response.data);
             const data = response.data;
             return {
                 ...data,
@@ -756,10 +754,7 @@ export const BookProvider = ({ children }) => {
                 tahun: data.tahun_terbit || data.tahun,
             };
         } catch (err) {
-            console.error("[BookContext] Fetch error:", err);
-            const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message;
-            setError(errorMsg);
-            throw new Error(errorMsg);
+            setError(err.message);
         } finally {
             setLoading(false);
         }
@@ -1024,7 +1019,7 @@ const fetchNonAkademikBookById = useCallback(async (id) => {
     const updateKelas1Book = async (id, bookData) => {
         setLoading(true);
         try {
-            const response = await axios.put(`/books-kelas-1/${id}`, bookData, {
+            const response = await axios.post(`/books-kelas-1/${id}`, bookData, { params: { _method: 'PUT' },
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -1045,7 +1040,7 @@ const fetchNonAkademikBookById = useCallback(async (id) => {
     const updateKelas2Book = async (id, bookData) => {
         setLoading(true);
         try {
-            const response = await axios.put(`/books-kelas-2/${id}`, bookData, {
+            const response = await axios.post(`/books-kelas-2/${id}`, bookData, { params: { _method: 'PUT' },
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -1065,7 +1060,7 @@ const fetchNonAkademikBookById = useCallback(async (id) => {
     const updateKelas3Book = async (id, bookData) => {
         setLoading(true);
         try {
-            const response = await axios.put(`/books-kelas-3/${id}`, bookData, {
+            const response = await axios.post(`/books-kelas-3/${id}`, bookData, { params: { _method: 'PUT' },
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -1086,7 +1081,7 @@ const fetchNonAkademikBookById = useCallback(async (id) => {
     const updateKelas4Book = async (id, bookData) => {
         setLoading(true);
         try {
-            const response = await axios.put(`/books-kelas-4/${id}`, bookData, {
+            const response = await axios.post(`/books-kelas-4/${id}`, bookData, { params: { _method: 'PUT' },
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -1106,7 +1101,7 @@ const fetchNonAkademikBookById = useCallback(async (id) => {
     const updateKelas5Book = async (id, bookData) => {
         setLoading(true);
         try {
-            const response = await axios.put(`/books-kelas-5/${id}`, bookData, {
+            const response = await axios.post(`/books-kelas-5/${id}`, bookData, { params: { _method: 'PUT' },
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -1126,7 +1121,7 @@ const fetchNonAkademikBookById = useCallback(async (id) => {
     const updateKelas6Book = async (id, bookData) => {
         setLoading(true);
         try {
-            const response = await axios.put(`/books-kelas-6/${id}`, bookData, {
+            const response = await axios.post(`/books-kelas-6/${id}`, bookData, { params: { _method: 'PUT' },
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -1146,7 +1141,7 @@ const fetchNonAkademikBookById = useCallback(async (id) => {
     const updateKelas7Book = async (id, bookData) => {
         setLoading(true);
         try {
-            const response = await axios.put(`/books-kelas-7/${id}`, bookData, {
+            const response = await axios.post(`/books-kelas-7/${id}`, bookData, { params: { _method: 'PUT' },
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -1166,7 +1161,7 @@ const fetchNonAkademikBookById = useCallback(async (id) => {
     const updateKelas8Book = async (id, bookData) => {
         setLoading(true);
         try {
-            const response = await axios.put(`/books-kelas-8/${id}`, bookData, {
+            const response = await axios.post(`/books-kelas-8/${id}`, bookData, { params: { _method: 'PUT' },
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -1186,7 +1181,7 @@ const fetchNonAkademikBookById = useCallback(async (id) => {
     const updateKelas9Book = async (id, bookData) => {
         setLoading(true);
         try {
-            const response = await axios.put(`/books-kelas-9/${id}`, bookData, {
+            const response = await axios.post(`/books-kelas-9/${id}`, bookData, { params: { _method: 'PUT' },
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -1206,7 +1201,7 @@ const fetchNonAkademikBookById = useCallback(async (id) => {
     const updateKelas10Book = async (id, bookData) => {
         setLoading(true);
         try {
-            const response = await axios.put(`/books-kelas-10/${id}`, bookData, {
+            const response = await axios.post(`/books-kelas-10/${id}`, bookData, { params: { _method: 'PUT' },
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -1246,7 +1241,7 @@ const fetchNonAkademikBookById = useCallback(async (id) => {
     const updateKelas12Book = async (id, bookData) => {
         setLoading(true);
         try {
-            const response = await axios.put(`/books-kelas-12/${id}`, bookData, {
+            const response = await axios.post(`/books-kelas-12/${id}`, bookData, { params: { _method: 'PUT' },
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -1267,7 +1262,7 @@ const fetchNonAkademikBookById = useCallback(async (id) => {
     const updateNonAkademikBook = async (id, bookData) => {
         setLoading(true);
         try {
-            const response = await axios.put(`/books-non-akademik/${id}`, bookData, {
+            const response = await axios.post(`/books-non-akademik/${id}`, bookData, { params: { _method: 'PUT' },
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -1314,7 +1309,7 @@ const deleteBookKelas1 = async (id) => {
     setLoading(true);
     try {
         await axios.delete(`/books-kelas-1/${id}`);
-        setKelas1Books((prevBooks) => prevBooks.filter((book) => book.id !== id));
+        setNonAkademikBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
     } catch (err) {
         setError(err.message);
     } finally {
@@ -1326,7 +1321,7 @@ const deleteBookKelas2 = async (id) => {
     setLoading(true);
     try {
         await axios.delete(`/books-kelas-2/${id}`);
-        setKelas2Books((prevBooks) => prevBooks.filter((book) => book.id !== id));
+        setNonAkademikBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
     } catch (err) {
         setError(err.message);
     } finally {
@@ -1338,7 +1333,7 @@ const deleteBookKelas3 = async (id) => {
     setLoading(true);
     try {
         await axios.delete(`/books-kelas-3/${id}`);
-        setKelas3Books((prevBooks) => prevBooks.filter((book) => book.id !== id));
+        setNonAkademikBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
     } catch (err) {
         setError(err.message);
     } finally {
@@ -1350,7 +1345,7 @@ const deleteBookKelas4 = async (id) => {
     setLoading(true);
     try {
         await axios.delete(`/books-kelas-4/${id}`);
-        setKelas4Books((prevBooks) => prevBooks.filter((book) => book.id !== id));
+        setNonAkademikBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
     } catch (err) {
         setError(err.message);
     } finally {
@@ -1361,7 +1356,7 @@ const deleteBookKelas5 = async (id) => {
     setLoading(true);
     try {
         await axios.delete(`/books-kelas-5/${id}`);
-        setKelas5Books((prevBooks) => prevBooks.filter((book) => book.id !== id));
+        setNonAkademikBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
     } catch (err) {
         setError(err.message);
     } finally {
@@ -1373,7 +1368,7 @@ const deleteBookKelas6 = async (id) => {
     setLoading(true);
     try {
         await axios.delete(`/books-kelas-6/${id}`);
-        setKelas6Books((prevBooks) => prevBooks.filter((book) => book.id !== id));
+        setNonAkademikBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
     } catch (err) {
         setError(err.message);
     } finally {
@@ -1384,7 +1379,7 @@ const deleteBookKelas7 = async (id) => {
     setLoading(true);
     try {
         await axios.delete(`/books-kelas-7/${id}`);
-        setKelas7Books((prevBooks) => prevBooks.filter((book) => book.id !== id));
+        setNonAkademikBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
     } catch (err) {
         setError(err.message);
     } finally {
@@ -1396,7 +1391,7 @@ const deleteBookKelas8 = async (id) => {
     setLoading(true);
     try {
         await axios.delete(`/books-kelas-8/${id}`);
-        setKelas8Books((prevBooks) => prevBooks.filter((book) => book.id !== id));
+        setNonAkademikBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
     } catch (err) {
         setError(err.message);
     } finally {
@@ -1407,7 +1402,7 @@ const deleteBookKelas9 = async (id) => {
     setLoading(true);
     try {
         await axios.delete(`/books-kelas-9/${id}`);
-        setKelas9Books((prevBooks) => prevBooks.filter((book) => book.id !== id));
+        setNonAkademikBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
     } catch (err) {
         setError(err.message);
     } finally {
@@ -1419,7 +1414,7 @@ const deleteBookKelas10 = async (id) => {
     setLoading(true);
     try {
         await axios.delete(`/books-kelas-10/${id}`);
-        setKelas10Books((prevBooks) => prevBooks.filter((book) => book.id !== id));
+        setNonAkademikBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
     } catch (err) {
         setError(err.message);
     } finally {
@@ -1430,7 +1425,7 @@ const deleteBookKelas11 = async (id) => {
     setLoading(true);
     try {
         await axios.delete(`/books-kelas-11/${id}`);
-        setKelas11Books((prevBooks) => prevBooks.filter((book) => book.id !== id));
+        setNonAkademikBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
     } catch (err) {
         setError(err.message);
     } finally {
@@ -1442,7 +1437,7 @@ const deleteBookKelas12 = async (id) => {
     setLoading(true);
     try {
         await axios.delete(`/books-kelas-12/${id}`);
-        setKelas12Books((prevBooks) => prevBooks.filter((book) => book.id !== id));
+        setNonAkademikBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
     } catch (err) {
         setError(err.message);
     } finally {

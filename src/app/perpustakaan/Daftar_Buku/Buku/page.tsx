@@ -20,6 +20,8 @@ interface Book {
   ISBN: string;
   isi: string;
   cover: string;
+  pdf_url?: string;
+  cover_url?: string;
 }
 
 const BookContent: React.FC = () => {
@@ -28,40 +30,25 @@ const BookContent: React.FC = () => {
   const searchParams = useSearchParams();
   const bookId = parseInt(searchParams.get("id") || "0", 10);
 
-  const { fetchBookById, deleteBook, getBookPdfUrl } = useBook(); // ✅ Ambil fungsi getBookPdfUrl
+  const { fetchBookById, deleteBook } = useBook();
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log(`[Page] Fetching data for bookId: ${bookId}`);
-      setError(null);
       try {
         const data = await fetchBookById(bookId);
-        if (!data) {
-           throw new Error("Data buku tidak ditemukan (kosong).");
-        }
-        console.log("[Page] Received data:", data);
         setBook(data);
-
-        // ✅ Ambil PDF URL dari context
-      } catch (err: any) {
-        console.error("Error fetching book or PDF URL:", err);
-        setError(err.message || "Terjadi kesalahan saat memuat buku.");
+      } catch (error) {
+        console.error("Error fetching book or PDF URL:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (bookId) {
-        fetchData();
-    } else {
-        console.warn("[Page] No bookId found in params");
-        setLoading(false);
-    }
-  }, [bookId, fetchBookById, getBookPdfUrl]);
+    fetchData();
+  }, [bookId, fetchBookById]);
 
   const handleDeleteBook = async (id: number) => {
     try {
@@ -81,12 +68,8 @@ const BookContent: React.FC = () => {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center p-8 bg-white rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            {error ? "Terjadi Kesalahan" : "Buku Tidak Ditemukan"}
-          </h2>
-          <p className="text-gray-600 mb-4">
-             {error ? error : `Maaf, buku dengan ID ${bookId} tidak dapat ditemukan.`}
-          </p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Buku Tidak Ditemukan</h2>
+          <p className="text-gray-600 mb-4">Maaf, buku dengan ID {bookId} tidak dapat ditemukan.</p>
           <button
             onClick={() => router.push("/perpustakaan/Daftar_Buku")}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
@@ -98,7 +81,7 @@ const BookContent: React.FC = () => {
     );
   }
 
-  const pdfUrl = getStorageUrl(book.isi); 
+  const pdfUrl = book.pdf_url || getStorageUrl(book.isi); 
 
   return (
     <div className="h-screen p-8 bg-gray-50 overflow-y-auto">
@@ -145,7 +128,7 @@ const BookContent: React.FC = () => {
         {/* Kiri */}
         <div className="flex flex-col items-center lg:items-start">
           <Image
-            src={getStorageUrl(book.cover)}
+            src={book.cover_url || getStorageUrl(book.cover)}
             alt="Cover Buku"
             width={200}
             height={280}

@@ -349,12 +349,10 @@ function EditBukuContent() {
     );
 }
 
-const Page = () => {
-  return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <EditBukuContent />
-    </Suspense>
-  );
-};
-
-export default Page;
+export default function Page() {
+    return (
+        <Suspense fallback={<LoadingSpinner />}>
+            <EditBukuContent />
+        </Suspense>
+    );
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar_Lainnya_Guru";
@@ -21,7 +21,7 @@ interface Book {
   cover: string;
 }
 
-const BookContent = () => {
+const Page = () => {
   const searchParams = useSearchParams();
   const bookId = parseInt(searchParams.get("id") || "0", 10);
   const { fetchKelas5BookById } = useBook();
@@ -136,21 +136,6 @@ const BookContent = () => {
         </div>
       </main>
     </div>
-  );
-};
-
-const Page = () => {
-  return (
-    <Suspense fallback={
-      <div className="h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-red border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-600">Memuat buku...</p>
-        </div>
-      </div>
-    }>
-      <BookContent />
-    </Suspense>
   );
 };
 

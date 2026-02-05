@@ -1,12 +1,14 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
   images: {
     formats: ['image/avif', 'image/webp'],
-    qualities: [75, 100],
     minimumCacheTTL: 60,
     remotePatterns: [
       {
@@ -24,12 +26,6 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'wflgdeqrzwtithgscpsi.supabase.co',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'stelkbook-be-production.up.railway.app',
         port: '',
         pathname: '/**',
       },

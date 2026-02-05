@@ -155,7 +155,7 @@ const BookContent: React.FC = () => {
   );
 };
 
-// Duplicate removed
+// Removed duplicate Page declaration
 
 export default function Page() {
   return (
