@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar_Lainnya_Perpus2';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useBook } from '@/context/bookContext';
+import { getStorageUrl } from '@/helpers/storage';
 import Image from 'next/image'; // Untuk contoh perbaikan image
 
 interface RekapKunjunganBook {
@@ -177,7 +178,7 @@ export default function KunjunganPage() {
              <div className="w-full max-w-[112px] mx-auto">
   <div className="relative aspect-[3/4]"> {/* 3:4 aspect ratio (120:160) */}
     <Image
-      src={`http://localhost:8000${bukuPalingSeringDibaca.cover_url}`}
+      src={getStorageUrl(bukuPalingSeringDibaca.cover_url)}
       alt={bukuPalingSeringDibaca.judul}
       fill
       className="object-cover rounded mb-4"
