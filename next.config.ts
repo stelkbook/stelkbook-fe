@@ -25,6 +25,12 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'stelkbook-be-production.up.railway.app',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'wflgdeqrzwtithgscpsi.supabase.co',
         port: '',
         pathname: '/**',

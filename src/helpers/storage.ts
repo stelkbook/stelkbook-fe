@@ -5,7 +5,7 @@ export const getStorageUrl = (path: string | null | undefined) => {
 
   // Handle local storage paths returned by backend (e.g., /storage/covers/...)
   if (path.startsWith('/storage/')) {
-    return `http://localhost:8000${path}`;
+    return `https://stelkbook-be-production.up.railway.app${path}`;
   }
   
   const SUPABASE_URL = 'https://wflgdeqrzwtithgscpsi.supabase.co/storage/v1/object/public';
@@ -20,5 +20,5 @@ export const getStorageUrl = (path: string | null | undefined) => {
   }
 
   // Fallback for other paths (or legacy)
-  return `http://localhost:8000/storage/${path}`;
+  return `https://stelkbook-be-production.up.railway.app/storage/${path}`;
 };
