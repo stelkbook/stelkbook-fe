@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import WarningModalBuku from "./WarningModalKelas3";
@@ -22,7 +22,7 @@ interface Book {
   cover: string;
 }
 
-const Page: React.FC = () => {
+const BookContent: React.FC = () => {
   const [showWarningModal, setShowWarningModal] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -105,96 +105,76 @@ const Page: React.FC = () => {
         <p className="text-xl font-semibold font-poppins">{book.judul}</p>
       </div>
 
-      {/* Konten Buku */}
-      <div className="flex flex-col lg:flex-row gap-8 items-center">
-        {/* Kiri */}
-        <div className="flex flex-col items-center lg:items-start">
+      <div className="flex flex-col lg:flex-row gap-8 items-start">
+        {/* Book Info */}
+        <div className="flex flex-col items-center lg:items-start w-full lg:w-1/4">
           <Image
             src={getStorageUrl(book.cover)}
             alt="Cover Buku"
             width={200}
             height={280}
             className="rounded-lg shadow-md mb-6"
-            priority={true}
-            style={{ width: "auto", height: "auto" }}
-            onError={(e) => {
-              e.currentTarget.src = "/assets/default-cover.png";
-            }}
           />
 
           <div className="text-center lg:text-left">
             <h2 className="text-lg font-bold">{book.judul}</h2>
             <ul className="mt-2 text-sm space-y-1">
-              <li>
-                <strong>Penerbit:</strong> {book.penerbit}
-              </li>
-              <li>
-                <strong>Penulis:</strong> {book.penulis}
-              </li>
-              <li>
-                <strong>Tahun:</strong> {book.tahun}
-              </li>
-              <li>
-                <strong>ISBN:</strong> {book.ISBN}
-              </li>
+              <li><strong>Penerbit:</strong> {book.penerbit}</li>
+              <li><strong>Penulis:</strong> {book.penulis}</li>
+              <li><strong>Tahun:</strong> {book.tahun}</li>
+              <li><strong>ISBN:</strong> {book.ISBN}</li>
             </ul>
           </div>
 
-          {/* Tombol */}
-          <div className="mt-4 flex flex-col gap-2">
+          {/* Buttons */}
+          <div className="mt-4 flex flex-col w-full gap-3">
             <button
-              onClick={() =>
-                router.push(`/kelasVI_perpus/buku6/Edit_Buku?id=${book.id}`)
-              }
-              className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 flex items-center gap-2"
+              onClick={() => router.push(`/kelasVI_perpus/buku6/Edit_Buku?id=${bookId}`)}
+              className="flex items-center justify-center gap-2 bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 transition"
             >
-              <Image
-                src="/assets/icon/edit.svg"
-                alt="Edit Icon"
-                width={16}
-                height={16}
-                style={{ width: "auto", height: "auto" }}
-              />
-              <span>Edit Buku</span>
+              <Image src="/assets/icon/edit.svg" alt="Edit" width={16} height={16} />
+              Edit Buku
             </button>
-
             <button
               onClick={() => setShowWarningModal(true)}
-              className="bg-red text-white px-4 py-2 rounded-lg shadow-md hover:bg-red flex items-center gap-2"
+              className="flex items-center justify-center gap-2 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition"
             >
-              <div style={{ position: "relative", width: 16, height: 16 }}>
-                <Image
-                  src="/assets/Admin/Delete_user.png"
-                  alt="Delete Icon"
-                  fill
-                  sizes="16px"
-                  style={{ objectFit: "contain" }}
-                />
-              </div>
-              <span>Hapus Buku</span>
+              <Image src="/assets/icon/delete.svg" alt="Hapus" width={16} height={16} />
+              Hapus Buku
             </button>
           </div>
         </div>
 
-        {/* Kanan */}
-        <div className="flex-grow overflow-x-auto">
-          {pdfUrl ? (
-            <PageFlipBook pdfUrl={pdfUrl} />
-          ) : (
-            <p className="text-gray-500">Memuat buku...</p>
-          )}
+        {/* Flipbook */}
+        <div className="flex-grow w-full lg:w-3/4">
+          <PageFlipBook pdfUrl={pdfUrl} />
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Warning Modal */}
       {showWarningModal && (
         <WarningModalBuku
-          isVisible={showWarningModal}
-          onClose={() => setShowWarningModal(false)}
-          book={book}
+          message="Apakah Anda yakin ingin menghapus buku ini?"
+          onConfirm={() => handleDeleteBook(bookId)}
+          onCancel={() => setShowWarningModal(false)}
         />
       )}
     </div>
+  );
+};
+
+const Page: React.FC = () => {
+  return (
+    <Suspense fallback={
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-red border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-600">Memuat buku...</p>
+        </div>
+      </div>
+    }>
+      <BookContent />
+    </Suspense>
   );
 };
 
