@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useAuth } from "@/context/authContext";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -17,7 +17,7 @@ interface Siswa {
   avatar?: string;
 }
 
-const SearchSiswaSMP: React.FC = () => {
+const SearchSiswaSMPContent: React.FC = () => {
   const { siswaSmpData, fetchAllSiswaSmp } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSiswa, setSelectedSiswa] = useState<Siswa | null>(null);
@@ -202,6 +202,18 @@ const SearchSiswaSMP: React.FC = () => {
         />
       )}
     </div>
+  );
+};
+
+const SearchSiswaSMP: React.FC = () => {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+      </div>
+    }>
+      <SearchSiswaSMPContent />
+    </Suspense>
   );
 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar_Guru";
@@ -18,7 +18,7 @@ interface Book {
   path?: string;
 }
 
-const SearchGuruPage = () => {
+const SearchGuruContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const query = searchParams.get("q")?.toLowerCase() || "";
@@ -149,6 +149,19 @@ const SearchGuruPage = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const SearchGuruPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col justify-center items-center bg-white">
+        <div className="w-14 h-14 border-4 border-red border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-gray-600 mt-4 text-lg">Memuat halaman...</p>
+      </div>
+    }>
+      <SearchGuruContent />
+    </Suspense>
   );
 };
 
