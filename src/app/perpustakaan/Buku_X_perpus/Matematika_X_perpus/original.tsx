@@ -30,7 +30,7 @@ function Page() {
           rel="stylesheet"
         />
       </head>
-      <div className="h-screen p-8 bg-gray-50 overflow-hidden">
+      <div className="h-screen p-8 bg-gray-50 overflow-y-auto">
         {/* Header */}
         <header className="flex justify-between items-center mb-4">
           <div className="flex-shrink-0">
@@ -102,7 +102,7 @@ function Page() {
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
           <div className="flex flex-col items-center lg:items-start">
             <div className="mb-6 translate-y-[-15px]">
               <Image

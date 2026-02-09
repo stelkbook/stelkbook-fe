@@ -47,7 +47,7 @@ function Page() {
           rel="stylesheet"
         />
       </head>
-      <div className="h-screen p-8 bg-gray-50 overflow-hidden">
+      <div className="h-screen p-8 bg-gray-50 overflow-y-auto">
         {/* Header */}
         <header className="flex justify-between items-center mb-4">
           {/* Stelkbook Logo */}
@@ -110,7 +110,7 @@ function Page() {
         </div>
 
         {/* Book Details Section */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
           {/* Book Cover and Metadata */}
           <div className="flex flex-col items-center lg:items-start">
             {/* Book Cover */}

@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Navbar from "@/components/Navbar_Guru";
-import PageFlipBook from "@/components/PageFlipBook";
+import PageFlipBook from "@/components/PageFlipBook2";
 
 function Page() {
   return (
@@ -40,7 +40,7 @@ function Page() {
                 </div>
 
         {/* Book and Flipbook Section */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
           {/* Book Cover and Metadata */}
           <div className="flex flex-col items-center lg:items-start">
             {/* Book Cover */}
@@ -78,7 +78,7 @@ function Page() {
 
           {/* Flipbook */}
           <div className="flex-grow">
-            <PageFlipBook pdfPath="/assets/pdfs/MTK-OLM.pdf"/>
+            <PageFlipBook pdfUrl="/assets/pdfs/MTK-OLM.pdf" align="start" />
           </div>
         </div>
       </main>

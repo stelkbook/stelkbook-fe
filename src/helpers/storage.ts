@@ -1,24 +1,26 @@
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL!;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_PUBLIC_URL!;
 
-export const getStorageUrl = (path: string | null | undefined) => {
-  if (!path) return '/assets/default-cover.png';
-  if (path.startsWith('http')) return path;
+export const getStorageUrl = (path?: string | null): string => {
+  if (!path) return "/assets/default-cover.png";
 
-  // Handle local storage paths returned by backend (e.g., /storage/covers/...)
-  if (path.startsWith('/storage/')) {
-    return `https://stelkbook-be-production.up.railway.app${path}`;
+  // sudah full url
+  if (path.startsWith("http")) return path;
+
+  // Laravel local storage
+  if (path.startsWith("/storage/")) {
+    return `${BACKEND_URL}${path}`;
   }
-  
-  const SUPABASE_URL = 'https://wflgdeqrzwtithgscpsi.supabase.co/storage/v1/object/public';
-  
-  // Check for common prefixes used in BookController
-  if (path.startsWith('books/')) {
+
+  // Supabase buckets
+  if (path.startsWith("books/")) {
     return `${SUPABASE_URL}/pdf_buku/${path}`;
   }
-  
-  if (path.startsWith('covers/')) {
+
+  if (path.startsWith("covers/")) {
     return `${SUPABASE_URL}/img_cover/${path}`;
   }
 
-  // Fallback for other paths (or legacy)
-  return `https://stelkbook-be-production.up.railway.app/storage/${path}`;
+  // fallback legacy
+  return `${BACKEND_URL}/storage/${path}`;
 };

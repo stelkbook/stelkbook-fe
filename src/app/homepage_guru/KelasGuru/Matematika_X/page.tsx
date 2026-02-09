@@ -3,11 +3,11 @@
 import React from "react";
 import Image from "next/image";
 import Navbar from "@/components/Navbar_Guru";
-import PageFlipBook from "@/components/PageFlipBook";
+import PageFlipBook from "@/components/PageFlipBook2";
 
 function Page() {
   return (
-    <div className="min-h-screen bg-gray-50 overflow-y-auto">
+    <div className="h-screen p-8 bg-gray-50 overflow-y-auto">
       {/* Navbar */}
       <div className="mb-8"><Navbar /></div>
 
@@ -40,7 +40,7 @@ function Page() {
                 </div>
 
         {/* Book and Flipbook Section */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
           {/* Book Cover and Metadata */}
           <div className="flex flex-col items-center lg:items-start">
             {/* Book Cover */}
@@ -77,8 +77,8 @@ function Page() {
           </div>
 
           {/* Flipbook */}
-          <div className="flex-grow">
-            <PageFlipBook pdfPath="/assets/pdfs/MTK-OLM.pdf" />
+          <div className="flex-grow overflow-x-auto w-full">
+            <PageFlipBook pdfUrl="/assets/pdfs/MTK-OLM.pdf" align="start" />
           </div>
         </div>
       </main>

@@ -167,9 +167,9 @@ const BukuNAContent: React.FC = () => {
         </div>
 
         {/* Kanan */}
-        <div id="flipbook" className="flex-grow overflow-x-auto">
+        <div id="flipbook" className="flex-grow overflow-x-auto w-full">
           {pdfUrl ? (
-            <PageFlipBook pdfUrl={pdfUrl} />
+            <PageFlipBook pdfUrl={pdfUrl} align="start" />
           ) : (
             <p className="text-gray-500">Memuat buku...</p>
           )}

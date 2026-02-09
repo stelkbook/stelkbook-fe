@@ -84,7 +84,7 @@ const BookContent = () => {
         </div>
 
         {/* Book Info + Flipbook */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
           {/* Book Info */}
           <div className="flex flex-col items-center lg:items-start">
             {/* Cover */}
@@ -117,21 +117,13 @@ const BookContent = () => {
             </div>
           </div>
 
-          {/* Flipbook */}
-          <div className="flex-grow">
-          {/* <div className="bg-gradient-to-r from-red to-slate-300 p-2 rounded-lg">
-    <iframe
-      src={pdfUrl}
-      width="100%"
-      height="600px"
-      className="rounded-lg"
-    ></iframe>
-  </div> */}
+          {/* Kanan */}
+          <div className="flex-grow overflow-x-auto w-full">
             {pdfUrl ? (
-            <PageFlipBook pdfUrl={pdfUrl} />
-          ) : (
-            <p className="text-gray-500">Memuat buku...</p>
-          )}
+              <PageFlipBook pdfUrl={pdfUrl} align="start" />
+            ) : (
+              <p className="text-gray-500">Memuat buku...</p>
+            )}
           </div>
         </div>
       </main>

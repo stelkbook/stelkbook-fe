@@ -7,15 +7,17 @@ import './FlipBookStyle2.css'
 import { MdFullscreen } from 'react-icons/md'
 
 // Ensure worker is configured
-if (typeof window !== 'undefined' && !pdfjs.GlobalWorkerOptions.workerSrc) {
+if (typeof window !== 'undefined') {
+  // Use the local worker file which we guaranteed matches the installed version
   pdfjs.GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.min.mjs'
 }
 
 interface PageFlipBookProps {
   pdfUrl: string
+  align?: 'center' | 'start'
 }
 
-const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl }) => {
+const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' }) => {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const bookContainerRef = useRef<HTMLDivElement>(null)
   const pageFlipRef = useRef<PageFlip | null>(null)
@@ -23,6 +25,7 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl }) => {
   const pdfDocRef = useRef<pdfjs.PDFDocumentProxy | null>(null)
   const pagesRef = useRef<HTMLDivElement[]>([])
   const renderingRef = useRef<Set<number>>(new Set())
+  const renderTasksRef = useRef<Map<number, any>>(new Map()) // Store render tasks to cancel them
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const [isLoading, setIsLoading] = useState(true)
@@ -112,10 +115,17 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl }) => {
   const updateDimensions = useCallback(() => {
     if (!wrapperRef.current) return
 
-    const containerWidth = wrapperRef.current.clientWidth
+    let containerWidth = wrapperRef.current.clientWidth
     const containerHeight = wrapperRef.current.clientHeight || window.innerHeight * 0.8
     const isMobile = window.innerWidth < 768
+    const isLg = window.innerWidth >= 1024
     
+    // Adjust width for left alignment offset on desktop
+    const desktopOffset = 64 // Match lg:pl-16 (64px)
+    if (align === 'start' && isLg) {
+      containerWidth -= desktopOffset
+    }
+
     // Page aspect ratio (Width / Height)
     // A4 is 1 / 1.414 = 0.707. Here we use 400/533 = 0.75
     const aspectRatio = 0.75 
@@ -159,7 +169,7 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl }) => {
       // Debounce resize to improve INP
       resizeTimeoutRef.current = setTimeout(() => {
           requestAnimationFrame(updateDimensions)
-      }, 100)
+      }, 200)
     }
 
     window.addEventListener('resize', handleResize)
@@ -174,6 +184,16 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl }) => {
     if (!pdfDocRef.current || !pagesRef.current[pageIndex]) return
     if (renderingRef.current.has(pageIndex)) return
 
+    // Cancel any existing render task for this page
+    if (renderTasksRef.current.has(pageIndex)) {
+      try {
+        renderTasksRef.current.get(pageIndex).cancel()
+      } catch (e) {
+        // Ignore cancel errors
+      }
+      renderTasksRef.current.delete(pageIndex)
+    }
+
     const pageWrapper = pagesRef.current[pageIndex]
     // If canvas exists, assume rendered
     if (pageWrapper.querySelector('canvas')) return
@@ -186,6 +206,12 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl }) => {
       const pixelRatio = window.devicePixelRatio || 1
       const viewport = page.getViewport({ scale: 1.5 * pixelRatio }) // Slightly higher scale for zoom quality
 
+      // Validate viewport dimensions
+      if (viewport.width === 0 || viewport.height === 0) {
+          console.error(`Invalid viewport for page ${pageIndex}:`, viewport)
+          return
+      }
+
       const canvas = document.createElement('canvas')
       const context = canvas.getContext('2d')
 
@@ -196,17 +222,23 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl }) => {
         canvas.style.width = '100%'
         canvas.style.height = '100%'
         
-        await page.render({ canvasContext: context, viewport }).promise
+        const renderTask = page.render({ canvasContext: context, viewport })
+        renderTasksRef.current.set(pageIndex, renderTask)
+
+        await renderTask.promise
 
         if (!pageWrapper.querySelector('canvas')) {
           pageWrapper.innerHTML = '' // Clear loading placeholder if any
           pageWrapper.appendChild(canvas)
         }
       }
-    } catch (err) {
-      console.error(`Error rendering page ${pageIndex}:`, err)
+    } catch (err: any) {
+      if (err?.name !== 'RenderingCancelledException') {
+        console.error(`Error rendering page ${pageIndex}:`, err)
+      }
     } finally {
       renderingRef.current.delete(pageIndex)
+      renderTasksRef.current.delete(pageIndex)
     }
   }, [])
 
@@ -316,6 +348,13 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl }) => {
         pageFlipRef.current.destroy()
         pageFlipRef.current = null
       }
+      // Cancel all pending renders
+      renderTasksRef.current.forEach((task) => {
+        try {
+            task.cancel()
+        } catch(e) {}
+      })
+      renderTasksRef.current.clear()
       pagesRef.current = []
     }
     // Re-run when dimensions change (resize) or PDF loads (totalPages)
@@ -336,7 +375,7 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl }) => {
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>
 
   return (
-    <div ref={wrapperRef} className="relative w-full h-full flex flex-col items-center justify-center gap-4 hide-scrollbar overflow-hidden">
+    <div ref={wrapperRef} className={`relative w-full h-full flex flex-col ${align === 'center' ? 'items-center' : 'items-center lg:items-start lg:pl-16'} justify-center gap-4 hide-scrollbar overflow-hidden`}>
       {/* Controls */}
       {!isLoading && (
         <div className="flex flex-wrap items-center justify-center gap-2 z-10 bg-white/80 p-2 rounded-lg backdrop-blur-sm shadow-sm">

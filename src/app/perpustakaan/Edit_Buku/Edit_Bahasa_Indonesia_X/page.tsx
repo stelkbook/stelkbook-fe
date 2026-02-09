@@ -58,7 +58,7 @@ function Page() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8 overflow-hidden">
+        <div className="min-h-screen bg-gray-50 p-8 overflow-y-auto">
             {/* Header */}
             <header className="flex justify-between items-center mb-8">
                 <Image

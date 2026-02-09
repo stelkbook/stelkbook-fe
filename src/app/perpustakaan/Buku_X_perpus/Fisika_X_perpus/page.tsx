@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import WarningModalBuku from "./WarningModalBuku5";
-import PageFlipBook from "@/components/PageFlipBook";
+import PageFlipBook from "@/components/PageFlipBook2";
 import Navbar from '@/components/Navbar_Perpus';
 
 function Page() {
@@ -58,8 +58,8 @@ function Page() {
         </div>
 
         {/* Flipbook */}
-        <div className="flex-grow overflow-x-auto">
-          <PageFlipBook pdfPath="/assets/pdfs/MTK-OLM.pdf" />
+        <div className="flex-grow overflow-x-auto w-full">
+          <PageFlipBook pdfUrl="/assets/pdfs/MTK-OLM.pdf" align="start" />
         </div>
       </div>
 

@@ -163,7 +163,7 @@ const pdfUrl = book.isi.startsWith('http') ? book.isi : `/api/pdf/${book.isi}`;
         </div>
 
         {/* Kanan */}
-        <div className="flex-grow overflow-x-auto">
+        <div className="flex-grow overflow-x-auto w-full">
         {/* <div className="bg-gradient-to-r from-red to-slate-300 p-2 rounded-lg">
     <iframe
       src={pdfUrl}
@@ -174,7 +174,7 @@ const pdfUrl = book.isi.startsWith('http') ? book.isi : `/api/pdf/${book.isi}`;
   </div> */}
           
           {pdfUrl ? (
-            <PageFlipBook pdfUrl={pdfUrl} />
+            <PageFlipBook pdfUrl={pdfUrl} align="start" />
           ) : (
             <p className="text-gray-500">Memuat buku...</p>
           )}

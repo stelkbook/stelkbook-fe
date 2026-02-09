@@ -78,7 +78,7 @@ const BookContent = () => {
         </div>
 
         {/* Book Info + Flipbook */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
           {/* Book Info */}
           <div className="flex flex-col items-center lg:items-start">
             {/* Cover */}
@@ -116,7 +116,7 @@ const BookContent = () => {
     ></iframe>
   </div> */}
               {pdfUrl ? (
-            <PageFlipBook pdfUrl={pdfUrl} />
+            <PageFlipBook pdfUrl={pdfUrl} align="start" />
           ) : (
             <p className="text-gray-500">Memuat buku...</p>
           )}

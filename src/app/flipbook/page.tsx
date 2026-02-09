@@ -26,7 +26,7 @@ const FlipBookPage: React.FC = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-black flex items-center justify-center overflow-hidden">
+    <div className="w-full min-h-screen bg-black flex items-center justify-center overflow-y-auto">
       <PageFlipBook pdfUrl={pdfUrl} />
     </div>
   )

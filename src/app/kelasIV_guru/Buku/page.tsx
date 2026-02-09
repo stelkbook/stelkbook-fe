@@ -144,10 +144,10 @@ const BookContent: React.FC = () => {
           </button>
         </div>
 
-        {/* Kanan: FlipBook */}
-        <div className="flex-grow overflow-x-auto">
+        {/* Kanan */}
+        <div className="flex-grow overflow-x-auto w-full">
           {pdfUrl ? (
-            <PageFlipBook pdfUrl={pdfUrl} />
+            <PageFlipBook pdfUrl={pdfUrl} align="start" />
           ) : (
             <p className="text-gray-500">Memuat buku...</p>
           )}
