@@ -1,7 +1,14 @@
 import axios from 'axios';
 
-const api =axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL,
+const baseURL = process.env.NEXT_PUBLIC_API_URL || 
+  (process.env.NEXT_PUBLIC_BACKEND_URL ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/api` : undefined);
+
+if (!baseURL && typeof window !== 'undefined') {
+  console.error('API URL is not defined. Please check NEXT_PUBLIC_API_URL or NEXT_PUBLIC_BACKEND_URL environment variables.');
+}
+
+const api = axios.create({
+    baseURL: baseURL,
     headers: {
         'Accept': 'application/json',
     }
