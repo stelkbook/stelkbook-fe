@@ -11,25 +11,32 @@ import { useAuth } from '@/context/authContext';
 interface KunjunganUser {
   username: string;
   kode?: string;
-  tanggal?: string;
+  tanggal_kunjungan?: string;
 }
 
 export default function KunjunganPage() {
   const [mode, setMode] = useState<'hari' | 'bulan' | 'tahun'>('hari');
+  const [activeTab, setActiveTab] = useState<'today' | 'history'>('today');
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { 
     rekapKunjunganData, 
     fetchRekapKunjungan,
     kunjunganData,
-    fetchKunjungan
+    fetchKunjungan,
+    allKunjunganData,
+    fetchAllHistoryKunjungan
   } = useAuth();
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        await Promise.all([fetchRekapKunjungan(), fetchKunjungan()]);
+        await Promise.all([
+          fetchRekapKunjungan(), 
+          fetchKunjungan(),
+          fetchAllHistoryKunjungan()
+        ]);
       } catch (error) {
         console.error("Gagal memuat data:", error);
       } finally {
@@ -37,7 +44,7 @@ export default function KunjunganPage() {
       }
     };
     loadData();
-  }, [fetchRekapKunjungan, fetchKunjungan]);
+  }, [fetchRekapKunjungan, fetchKunjungan, fetchAllHistoryKunjungan]);
 
   const getMonthName = (month: string) => {
     const months = [
@@ -122,34 +129,91 @@ export default function KunjunganPage() {
         </div>
 
         <div className="w-full flex flex-col gap-6">
-          {/* Today's Visitors Box */}
+          {/* Visitors Box with Tabs */}
           <div className="bg-white shadow-lg rounded-xl p-6 border border-gray-200">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">
-              Kunjungan Hari ini: <span className="text-red font-semibold">
-                {kunjunganData?.length || 0} pengunjung
-              </span>
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex space-x-2 bg-gray-100 p-1 rounded-lg">
+                <button
+                  onClick={() => setActiveTab('today')}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                    activeTab === 'today'
+                      ? 'bg-white text-red shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Hari Ini
+                </button>
+                <button
+                  onClick={() => setActiveTab('history')}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                    activeTab === 'history'
+                      ? 'bg-white text-red shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Riwayat
+                </button>
+              </div>
+              <h2 className="text-lg font-bold text-gray-800">
+                <span className="text-red font-semibold">
+                  {activeTab === 'today' 
+                    ? (kunjunganData?.length || 0) 
+                    : (allKunjunganData?.length || 0)}
+                </span> Pengunjung
+              </h2>
+            </div>
 
-            <div className="space-y-3 max-h-60 overflow-y-auto">
-              {kunjunganData && kunjunganData.length > 0 ? (
-                kunjunganData.map((user: KunjunganUser, index: number) => (
-                  <div key={index} className="flex items-center justify-between border-b pb-3 border-gray-200">
-                    <div className="flex items-center gap-3">
-                      <FaUserCircle size={32} className="text-red" />
-                      <div>
-                        <p className="font-medium text-gray-800">{user.username}</p>
-                        <p className="text-sm text-gray-500">{user.kode || 'N/A'}</p>
+            <div className="space-y-3 max-h-80 overflow-y-auto">
+              {activeTab === 'today' ? (
+                kunjunganData && kunjunganData.length > 0 ? (
+                  kunjunganData.map((user: KunjunganUser, index: number) => (
+                    <div key={index} className="flex items-center justify-between border-b pb-3 border-gray-200">
+                      <div className="flex items-center gap-3">
+                        <FaUserCircle size={32} className="text-red" />
+                        <div>
+                          <p className="font-medium text-gray-800">{user.username}</p>
+                          <p className="text-sm text-gray-500">{user.kode || 'N/A'}</p>
+                        </div>
                       </div>
+                      {user.tanggal_kunjungan && (
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500 font-medium">Jam Login</p>
+                          <p className="text-sm text-gray-800 font-semibold">
+                            {new Date(user.tanggal_kunjungan).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    {user.tanggal && (
-                      <span className="text-xs text-gray-400">
-                        {new Date(user.tanggal).toLocaleTimeString()}
-                      </span>
-                    )}
-                  </div>
-                ))
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-center py-4">Belum ada kunjungan hari ini</p>
+                )
               ) : (
-                <p className="text-gray-500 text-center py-4">Belum ada kunjungan hari ini</p>
+                allKunjunganData && allKunjunganData.length > 0 ? (
+                  allKunjunganData.map((user: KunjunganUser, index: number) => (
+                    <div key={index} className="flex items-center justify-between border-b pb-3 border-gray-200">
+                      <div className="flex items-center gap-3">
+                        <FaUserCircle size={32} className="text-gray-400" />
+                        <div>
+                          <p className="font-medium text-gray-800">{user.username}</p>
+                          <p className="text-xs text-gray-500">{user.kode || 'N/A'}</p>
+                        </div>
+                      </div>
+                      {user.tanggal_kunjungan && (
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500">
+                            {new Date(user.tanggal_kunjungan).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {new Date(user.tanggal_kunjungan).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-center py-4">Belum ada riwayat kunjungan</p>
+                )
               )}
             </div>
           </div>

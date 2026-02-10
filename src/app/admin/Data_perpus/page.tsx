@@ -31,6 +31,12 @@ function Page() {
 
   useEffect(() => {
     const getPerpusData = async () => {
+      // Cek apakah data sudah ada untuk menghindari fetch berulang
+      if (perpusData && perpusData.length > 0) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         setIsLoading(true);
         await fetchAllPerpus();
@@ -42,7 +48,7 @@ function Page() {
     };
 
     getPerpusData();
-  }, [fetchAllPerpus]);
+  }, [fetchAllPerpus, perpusData]);
 
   const handleDeleteUser = (perpus: Perpus) => {
     setSelectedPerpus({ 

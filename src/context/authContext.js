@@ -27,6 +27,7 @@ const [guruSmpDetail, setGuruSmpDetail] = useState(null); // Data spesifik guru 
 const [guruSmkDetail, setGuruSmkDetail] = useState(null); // Data spesifik guru SMK berdasarkan ID
   const [perpusDetail, setPerpusDetail] = useState(null); // State untuk data perpus spesifik
   const [kunjunganData, setKunjunganData] = useState(null);
+  const [allKunjunganData, setAllKunjunganData] = useState(null);
   const [rekapKunjunganData, setRekapKunjunganData] = useState(null);
 
   const router = useRouter();
@@ -237,52 +238,90 @@ const fetchAllSiswa = useCallback(async () => {
 
     setSiswaData(res.data); // Simpan semua data ke state siswaData
   } catch (e) {
-    console.error("Gagal mengambil data siswa:", e.response?.data?.message || e.message);
-    throw new Error(e.response?.data?.message || "Gagal mengambil data siswa.");
+    const msg = e.response?.data?.message || e.message;
+    if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || e.response?.status === 404)) {
+      setSiswaData([]);
+      return;
+    }
+    console.error("Gagal mengambil data siswa:", msg);
+    throw new Error(msg || "Gagal mengambil data siswa.");
   }
 },[]);
 
 const fetchAllSiswaSd = useCallback(async () => {
-  try {
-    const token = localStorage.getItem('auth_token');
-    if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
-    const res = await axios.get('/siswa-sd', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setSiswaSdData(res.data);
-  } catch (e) {
-    console.error("Gagal mengambil data siswa SD:", e.response?.data?.message || e.message);
-    throw new Error(e.response?.data?.message || "Gagal mengambil data siswa SD.");
-  }
-}, []);
+    if (loading) return;
+    if (user && !['Admin', 'Perpus', 'PengurusPerpustakaan'].includes(user.role) && user.sekolah && user.sekolah !== 'SD') {
+      setSiswaSdData([]);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
+      const res = await axios.get('/siswa-sd', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSiswaSdData(res.data);
+    } catch (e) {
+      const msg = e.response?.data?.message || e.message;
+      if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || e.response?.status === 404)) {
+        setSiswaSdData([]);
+        return;
+      }
+      console.error("Gagal mengambil data siswa SD:", msg);
+      throw new Error(msg || "Gagal mengambil data siswa SD.");
+    }
+  }, [loading, user]);
 
 const fetchAllSiswaSmp = useCallback(async () => {
-  try {
-    const token = localStorage.getItem('auth_token');
-    if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
-    const res = await axios.get('/siswa-smp', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setSiswaSmpData(res.data);
-  } catch (e) {
-    console.error("Gagal mengambil data siswa SMP:", e.response?.data?.message || e.message);
-    throw new Error(e.response?.data?.message || "Gagal mengambil data siswa SMP.");
-  }
-}, []);
+    if (loading) return;
+    if (user && !['Admin', 'Perpus', 'PengurusPerpustakaan'].includes(user.role) && user.sekolah && user.sekolah !== 'SMP') {
+      setSiswaSmpData([]);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
+      const res = await axios.get('/siswa-smp', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSiswaSmpData(res.data);
+    } catch (e) {
+      const msg = e.response?.data?.message || e.message;
+      if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || e.response?.status === 404)) {
+        setSiswaSmpData([]);
+        return;
+      }
+      console.error("Gagal mengambil data siswa SMP:", msg);
+      throw new Error(msg || "Gagal mengambil data siswa SMP.");
+    }
+  }, [loading, user]);
 
 const fetchAllSiswaSmk = useCallback(async () => {
-  try {
-    const token = localStorage.getItem('auth_token');
-    if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
-    const res = await axios.get('/siswa-smk', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setSiswaSmkData(res.data);
-  } catch (e) {
-    console.error("Gagal mengambil data siswa SMK:", e.response?.data?.message || e.message);
-    throw new Error(e.response?.data?.message || "Gagal mengambil data siswa SMK.");
-  }
-}, []);
+    if (loading) return;
+    if (user && !['Admin', 'Perpus', 'PengurusPerpustakaan'].includes(user.role) && user.sekolah && user.sekolah !== 'SMK') {
+      setSiswaSmkData([]);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
+      const res = await axios.get('/siswa-smk', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSiswaSmkData(res.data);
+    } catch (e) {
+      const msg = e.response?.data?.message || e.message;
+      if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || e.response?.status === 404)) {
+        setSiswaSmkData([]);
+        return;
+      }
+      console.error("Gagal mengambil data siswa SMK:", msg);
+      throw new Error(msg || "Gagal mengambil data siswa SMK.");
+    }
+  }, [loading, user]);
 
 // Fetch all guru data
 const fetchAllGuru = useCallback(async () => {
@@ -296,77 +335,127 @@ const fetchAllGuru = useCallback(async () => {
 
     setGuruData(res.data); // Simpan semua data ke state guruData
   } catch (e) {
-    console.error("Gagal mengambil data guru:", e.response?.data?.message || e.message);
-    throw new Error(e.response?.data?.message || "Gagal mengambil data guru.");
+    const msg = e.response?.data?.message || e.message;
+    if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || e.response?.status === 404)) {
+      setGuruData([]);
+      return;
+    }
+    console.error("Gagal mengambil data guru:", msg);
+    throw new Error(msg || "Gagal mengambil data guru.");
   }
 },[]);
 
 const fetchAllGuruSd = useCallback(async () => {
-  try {
-    const token = localStorage.getItem('auth_token');
-    if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
+    if (loading) return;
+    if (user && !['Admin', 'Perpus', 'PengurusPerpustakaan'].includes(user.role) && user.sekolah && user.sekolah !== 'SD') {
+      setGuruSdData([]);
+      return;
+    }
 
-    const res = await axios.get('/guru-sd', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
 
-    setGuruSdData(res.data);
-  } catch (e) {
-    console.error("Gagal mengambil data guru SD:", e.response?.data?.message || e.message);
-    throw new Error(e.response?.data?.message || "Gagal mengambil data guru SD.");
-  }
-}, []);
+      const res = await axios.get('/guru-sd', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setGuruSdData(res.data);
+    } catch (e) {
+      const msg = e.response?.data?.message || e.message;
+      if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || e.response?.status === 404)) {
+        setGuruSdData([]);
+        return;
+      }
+      console.error("Gagal mengambil data guru SD:", msg);
+      throw new Error(msg || "Gagal mengambil data guru SD.");
+    }
+  }, [loading, user]);
 
 // Fetch all guru SMP data
 const fetchAllGuruSmp = useCallback(async () => {
-  try {
-    const token = localStorage.getItem('auth_token');
-    if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
+    if (loading) return;
+    if (user && !['Admin', 'Perpus', 'PengurusPerpustakaan'].includes(user.role) && user.sekolah && user.sekolah !== 'SMP') {
+      setGuruSmpData([]);
+      return;
+    }
 
-    const res = await axios.get('/guru-smp', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
 
-    setGuruSmpData(res.data);
-  } catch (e) {
-    console.error("Gagal mengambil data guru SMP:", e.response?.data?.message || e.message);
-    throw new Error(e.response?.data?.message || "Gagal mengambil data guru SMP.");
-  }
-}, []);
+      const res = await axios.get('/guru-smp', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setGuruSmpData(res.data);
+    } catch (e) {
+      const msg = e.response?.data?.message || e.message;
+      if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || e.response?.status === 404)) {
+        setGuruSmpData([]);
+        return;
+      }
+      console.error("Gagal mengambil data guru SMP:", msg);
+      throw new Error(msg || "Gagal mengambil data guru SMP.");
+    }
+  }, [loading, user]);
 
 // Fetch all guru SMK data
 const fetchAllGuruSmk = useCallback(async () => {
-  try {
-    const token = localStorage.getItem('auth_token');
-    if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
+    if (loading) return;
+    if (user && !['Admin', 'Perpus', 'PengurusPerpustakaan'].includes(user.role) && user.sekolah && user.sekolah !== 'SMK') {
+      setGuruSmkData([]);
+      return;
+    }
 
-    const res = await axios.get('/guru-smk', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
 
-    setGuruSmkData(res.data);
-  } catch (e) {
-    console.error("Gagal mengambil data guru SMK:", e.response?.data?.message || e.message);
-    throw new Error(e.response?.data?.message || "Gagal mengambil data guru SMK.");
-  }
-}, []);
+      const res = await axios.get('/guru-smk', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setGuruSmkData(res.data);
+    } catch (e) {
+      const msg = e.response?.data?.message || e.message;
+      // Suppress "Not found" or "Tidak ada" errors
+      if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || e.response?.status === 404)) {
+        setGuruSmkData([]); 
+        return;
+      }
+      console.error("Gagal mengambil data guru SMK:", msg);
+      throw new Error(msg || "Gagal mengambil data guru SMK.");
+    }
+  }, [loading, user]);
 
 // Fetch all perpus data
 const fetchAllPerpus = useCallback(async () => {
-  try {
-    const token = localStorage.getItem('auth_token');
-    if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
+    if (loading) return;
+    if (user && !['Admin', 'Perpus', 'PengurusPerpustakaan'].includes(user.role)) {
+      setPerpusData([]);
+      return;
+    }
 
-    const res = await axios.get('/perpus', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
 
-    setPerpusData(res.data); // Simpan semua data ke state perpusData
-  } catch (e) {
-    console.error("Gagal mengambil data perpus:", e.response?.data?.message || e.message);
-    throw new Error(e.response?.data?.message || "Gagal mengambil data perpus.");
-  }
-},[]); 
+      const res = await axios.get('/perpus', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setPerpusData(res.data); // Simpan semua data ke state perpusData
+    } catch (e) {
+      const msg = e.response?.data?.message || e.message;
+      if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || e.response?.status === 404)) {
+        setPerpusData([]);
+        return;
+      }
+      console.error("Gagal mengambil data perpus:", msg);
+      throw new Error(msg || "Gagal mengambil data perpus.");
+    }
+  }, [loading, user]); 
 
   // Login function
   const login = async (form) => {
@@ -496,8 +585,12 @@ const fetchPendingUsers = useCallback(async () => {
 
     return res.data;
   } catch (e) {
-    console.error("Gagal mengambil data pengguna pending:", e.response?.data?.message || e.message);
-    throw new Error(e.response?.data?.message || "Gagal mengambil data pengguna pending.");
+    const msg = e.response?.data?.message || e.message;
+    if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || e.response?.status === 404)) {
+      return [];
+    }
+    console.error("Gagal mengambil data pengguna pending:", msg);
+    throw new Error(msg || "Gagal mengambil data pengguna pending.");
   }
 }, []);
 
@@ -915,8 +1008,35 @@ const updateGuruSmk = async (id, form) => {
       setKunjunganData(res.data.data);
       return res.data;
     } catch (e) {
-      console.error("Gagal mengambil data kunjungan:", e.response?.data?.message || e.message);
-      throw new Error(e.response?.data?.message || "Gagal mengambil data kunjungan.");
+      const msg = e.response?.data?.message || e.message;
+      if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || e.response?.status === 404)) {
+        setKunjunganData([]);
+        return;
+      }
+      console.error("Gagal mengambil data kunjungan:", msg);
+      throw new Error(msg || "Gagal mengambil data kunjungan.");
+    }
+  }, []);
+
+  const fetchAllHistoryKunjungan = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) throw new Error("Token tidak ditemukan, silakan login kembali.");
+
+      const res = await axios.get('/data-kunjungans', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setAllKunjunganData(res.data.data);
+      return res.data;
+    } catch (e) {
+      const msg = e.response?.data?.message || e.message;
+      if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || e.response?.status === 404)) {
+        setAllKunjunganData([]);
+        return;
+      }
+      console.error("Gagal mengambil riwayat kunjungan:", msg);
+      throw new Error(msg || "Gagal mengambil riwayat kunjungan.");
     }
   }, []);
 
@@ -933,8 +1053,13 @@ const updateGuruSmk = async (id, form) => {
       setRekapKunjunganData(res.data);
       return res.data;
     } catch (e) {
-      console.error("Gagal mengambil rekap data kunjungan:", e.response?.data?.message || e.message);
-      throw new Error(e.response?.data?.message || "Gagal mengambil rekap data kunjungan.");
+      const msg = e.response?.data?.message || e.message;
+      if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || e.response?.status === 404)) {
+        setRekapKunjunganData(null); // Or default structure
+        return;
+      }
+      console.error("Gagal mengambil rekap data kunjungan:", msg);
+      throw new Error(msg || "Gagal mengambil rekap data kunjungan.");
     }
   }, []);
 
@@ -961,8 +1086,10 @@ const updateGuruSmk = async (id, form) => {
       guruSmkDetail,
       perpusDetail, 
       kunjunganData,
+      allKunjunganData,
       rekapKunjunganData,
       fetchKunjungan,
+      fetchAllHistoryKunjungan,
       fetchRekapKunjungan,
       login, 
       logout, 

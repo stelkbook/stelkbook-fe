@@ -45,6 +45,7 @@ export const BookProvider = ({ children }) => {
     const [nonAkademikPagination, setNonAkademikPagination] = useState(paginationInitialState);
     const [guruPagination, setGuruPagination] = useState(paginationInitialState);
     const [rekapKunjunganBooks, setRekapKunjunganBooks] = useState([]);
+    const [kunjunganBooks, setKunjunganBooks] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [pagination, setPagination] = useState({
@@ -82,6 +83,11 @@ export const BookProvider = ({ children }) => {
             const response = await axios.get('/books-siswa');
             setSiswaBooks(response.data);
         } catch (err) {
+            const msg = err.response?.data?.message || err.message;
+            if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || err.response?.status === 404)) {
+                setSiswaBooks([]);
+                return;
+            }
             console.error(err);
         } finally {
             setLoading(false);
@@ -668,6 +674,12 @@ export const BookProvider = ({ children }) => {
             setGuruBooks(data);
             setGuruPagination(paginationMeta);
         } catch (err) {
+            const msg = err.response?.data?.message || err.message;
+            if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || err.response?.status === 404)) {
+                setGuruBooks([]);
+                setGuruPagination({ currentPage: 1, lastPage: 1, total: 0 });
+                return;
+            }
             console.error(err);
         } finally {
             setLoading(false);
@@ -682,6 +694,11 @@ export const BookProvider = ({ children }) => {
         //   console.log('Response from API:', response.data); // Debugging
           setPerpusBooks(response.data);
         } catch (err) {
+          const msg = err.response?.data?.message || err.message;
+          if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || err.response?.status === 404)) {
+            setPerpusBooks([]);
+            return;
+          }
           console.error(err);
         } finally {
           setLoading(false);
@@ -1453,9 +1470,25 @@ const deleteBookKelas12 = async (id) => {
           setRekapKunjunganBooks(response.data.data); 
       }
     } catch (err) {
-      console.error('Failed to fetch rekap kunjungan:', err);
+      const msg = err.response?.data?.message || err.message;
+      if (msg && (msg.toLowerCase().includes("tidak ada") || msg.toLowerCase().includes("not found") || err.response?.status === 404)) {
+          setRekapKunjunganBooks([]);
+          return;
+      }
+      console.error('Failed to fetch rekap kunjungan:', msg);
       // Suppress global error to avoid blocking UI for secondary data
     } 
+  }, []);
+
+  const fetchKunjunganBooks = useCallback(async () => {
+    try {
+        const response = await axios.get('/kunjungan-books');
+        if (response.data && response.data.data) {
+            setKunjunganBooks(response.data.data);
+        }
+    } catch (err) {
+        console.error('Failed to fetch kunjungan books:', err);
+    }
   }, []);
 
 
@@ -1521,6 +1554,8 @@ const deleteBookKelas12 = async (id) => {
                 fetchBooks,
                 fetchRekapKunjunganBooks,
                 rekapKunjunganBooks,
+                fetchKunjunganBooks,
+                kunjunganBooks,
                 fetchSiswaBooks,
                 fetchKelas1Books,
                 fetchKelas2Books,

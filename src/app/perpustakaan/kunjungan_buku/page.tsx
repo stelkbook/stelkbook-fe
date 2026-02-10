@@ -19,31 +19,48 @@ interface RekapKunjunganBook {
   cover_url: string;
 }
 
+interface KunjunganBook {
+  id: number;
+  book_id: number;
+  user_id: number | null;
+  username: string | null;
+  judul: string;
+  cover: string;
+  cover_url: string | null;
+  created_at: string;
+  sekolah: string | null;
+  kategori: string | null;
+}
+
 export default function KunjunganPage() {
-  const [jenjang, setJenjang] = useState<'SD' | 'SMP' | 'SMK' | 'NA' | null>(null);
+  const [jenjang, setJenjang] = useState<'All' | 'SD' | 'SMP' | 'SMK' | 'NA' | null>(null);
   const [kelas, setKelas] = useState<number | null>(null);
   const router = useRouter();
 
   const {
     fetchRekapKunjunganBooks,
     rekapKunjunganBooks,
+    fetchKunjunganBooks,
+    kunjunganBooks,
     loading
   }: {
     fetchRekapKunjunganBooks: () => Promise<void>;
     rekapKunjunganBooks: RekapKunjunganBook[];
+    fetchKunjunganBooks: () => Promise<void>;
+    kunjunganBooks: KunjunganBook[];
     loading: boolean;
   } = useBook();
 
   useEffect(() => {
     const loadData = async () => {
-      await fetchRekapKunjunganBooks();
+      await Promise.all([fetchRekapKunjunganBooks(), fetchKunjunganBooks()]);
     };
     loadData();
-  }, [fetchRekapKunjunganBooks]);
+  }, [fetchRekapKunjunganBooks, fetchKunjunganBooks]);
 
   useEffect(() => {
     if (!loading && jenjang === null) {
-      setJenjang('SD');
+      setJenjang('All');
       setKelas(null);
     }
   }, [loading, jenjang]);
@@ -57,7 +74,7 @@ export default function KunjunganPage() {
   };
 
   const renderKelasButtons = () => {
-    if (!jenjang || jenjang === 'NA') return null;
+    if (!jenjang || jenjang === 'NA' || jenjang === 'All') return null;
 
     let range: number[] = [];
     if (jenjang === 'SD') range = [1, 2, 3, 4, 5, 6];
@@ -85,6 +102,10 @@ export default function KunjunganPage() {
   const bukuFilteredByJenjang = (() => {
     if (!jenjang) return [];
 
+    if (jenjang === 'All') {
+      return rekapKunjunganBooks;
+    }
+
     if (jenjang === 'NA') {
       return rekapKunjunganBooks.filter(
         (book) => book.kategori === 'NA' || book.sekolah === null
@@ -106,6 +127,28 @@ export default function KunjunganPage() {
       name: book.judul,
       total_kunjungan: book.total_kunjungan,
     }));
+
+  // Filter Data Riwayat Kunjungan Buku berdasarkan Jenjang dan Kelas
+  const filteredKunjunganBooks = kunjunganBooks.filter((item) => {
+    // 1. Filter by Jenjang (Sekolah)
+    if (jenjang && jenjang !== 'All') {
+      if (jenjang === 'NA') {
+        if (item.kategori !== 'NA' && item.sekolah !== null) return false;
+      } else {
+        if (item.sekolah !== jenjang) return false;
+      }
+    }
+
+    // 2. Filter by Kelas
+    if (kelas) {
+       // Jika item kategori 'NA', kita anggap lolos filter kelas (opsional, tergantung logic bisnis)
+       // Tapi biasanya NA tidak punya kelas.
+       if (item.kategori === 'NA') return true;
+       if (item.kategori !== toRoman(kelas)) return false;
+    }
+
+    return true;
+  });
 
   return (
     <div className="min-h-screen px-6 mt-6 pt-20 bg-gray-50 p-4 relative" aria-busy={loading}>
@@ -145,7 +188,7 @@ export default function KunjunganPage() {
           )}
 
           <div className="flex justify-center mt-6 gap-4 flex-wrap">
-            {['SD', 'SMP', 'SMK', 'NA'].map((item) => (
+            {['All', 'SD', 'SMP', 'SMK', 'NA'].map((item) => (
               <button
                 key={item}
                 onClick={() => {
@@ -204,6 +247,64 @@ export default function KunjunganPage() {
               <p className="text-red-600 font-medium text-base">Memuat...</p>
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="mt-8 bg-white shadow-lg rounded-xl p-6 border border-gray-200">
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Riwayat Kunjungan Buku</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="py-3 px-4 text-gray-600 font-semibold">Cover</th>
+                <th className="py-3 px-4 text-gray-600 font-semibold">Judul Buku</th>
+                <th className="py-3 px-4 text-gray-600 font-semibold">Pembaca</th>
+                <th className="py-3 px-4 text-gray-600 font-semibold">Waktu</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredKunjunganBooks && filteredKunjunganBooks.length > 0 ? (
+                filteredKunjunganBooks.map((item) => (
+                  <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4">
+                      <div className="relative w-12 h-16">
+                        <Image
+                          src={getStorageUrl(item.cover_url)}
+                          alt={item.judul}
+                          fill
+                          className="object-cover rounded"
+                          sizes="48px"
+                        />
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-gray-800">{item.judul}</td>
+                    <td className="py-3 px-4 text-gray-800">
+                      {item.username ? (
+                        <span className="font-medium">{item.username}</span>
+                      ) : (
+                        <span className="text-gray-400 italic">Anonim</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-gray-600">
+                      {new Date(item.created_at).toLocaleString('id-ID', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="py-8 text-center text-gray-500">
+                    Belum ada riwayat kunjungan buku untuk kategori ini.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
