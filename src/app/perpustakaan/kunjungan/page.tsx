@@ -107,6 +107,11 @@ export default function KunjunganPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Chart Section */}
         <div className="w-full h-fit bg-white shadow-lg rounded-xl p-4 border border-gray-200">
+          {/* Header dengan judul */}
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Grafik Kunjungan {mode === 'hari' ? '7 Hari Terakhir' : mode === 'bulan' ? 'Bulan Ini' : 'Tahun Ini'}
+          </h3>
+          
           <KunjunganChart data={getData()} />
 
           <div className="flex justify-center mt-6 gap-4 flex-wrap">
@@ -120,9 +125,9 @@ export default function KunjunganPage() {
                     : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
                 }`}
               >
-                {item === 'hari' ? 'Hari' : 
-                 item === 'bulan' ? 'Bulan' : 
-                 'Tahun'}
+                {item === 'hari' ? '7 Hari' : 
+                 item === 'bulan' ? 'Bulan Ini' : 
+                 'Tahun Ini'}
               </button>
             ))}
           </div>
