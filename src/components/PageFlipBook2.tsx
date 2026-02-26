@@ -395,7 +395,7 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
           </div>
           <button
             onClick={goToPage}
-            className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+            className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
           >
             Go
           </button>
@@ -416,7 +416,7 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
       {/* Loading State */}
       {isLoading && (
         <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-gray-50/50">
-          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="mt-2 text-gray-600 font-medium">Memuat buku...</p>
         </div>
       )}

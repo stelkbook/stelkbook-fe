@@ -6,16 +6,35 @@ import Navbar from '@/components/Navbar_Lainnya_Perpus2';
 import { useRouter } from 'next/navigation';
 import useAuthMiddleware from '@/hooks/auth';
 import { useAuth } from '@/context/authContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { FaBookOpen } from 'react-icons/fa6';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useBook } from '@/context/bookContext';
+import { getStorageUrl } from '@/helpers/storage';
+import { Award, Star } from 'lucide-react';
 
 export default function Home() {
   useAuthMiddleware();
   const router = useRouter();
-  const { user, fetchPendingUsers, approveUser, rejectUser } = useAuth();
+  const { 
+    user, 
+    fetchPendingUsers, 
+    approveUser, 
+    rejectUser,
+    rekapKunjunganData,
+    fetchRekapKunjungan 
+  } = useAuth();
+  
+  const {
+    fetchRekapKunjunganBooks,
+    rekapKunjunganBooks,
+    loading: bookLoading
+  } = useBook();
+
   const [pendingUsers, setPendingUsers] = useState<any[]>([]);
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingPending, setLoadingPending] = useState(true);
+  const [loadingRekap, setLoadingRekap] = useState(true);
 
   // Cek status user & redirect
   useEffect(() => {
@@ -47,6 +66,24 @@ export default function Home() {
     loadPendingUsers();
   }, [fetchPendingUsers]);
 
+  // Ambil data rekap kunjungan dan buku
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoadingRekap(true);
+        await Promise.all([
+          fetchRekapKunjungan(),
+          fetchRekapKunjunganBooks()
+        ]);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      } finally {
+        setLoadingRekap(false);
+      }
+    };
+    loadData();
+  }, [fetchRekapKunjungan, fetchRekapKunjunganBooks]);
+
   const handleNavigation = (path: string) => {
     router.push(path);
   };
@@ -71,11 +108,105 @@ export default function Home() {
     }
   };
 
-  const loading = loadingUser || loadingPending;
+  // Get top 3 most read books
+  const top3Buku = useMemo(() => {
+    if (!rekapKunjunganBooks || rekapKunjunganBooks.length === 0) return [];
+    
+    return [...rekapKunjunganBooks]
+      .sort((a, b) => {
+        const totalA = Number(a.total_kunjungan) || 0;
+        const totalB = Number(b.total_kunjungan) || 0;
+        return totalB - totalA;
+      })
+      .slice(0, 3);
+  }, [rekapKunjunganBooks]);
+
+  // Hitung total kunjungan top 3 buku
+  const totalKunjunganTop3 = useMemo(() => {
+    return top3Buku.reduce((acc, book) => {
+      const kunjungan = Number(book.total_kunjungan) || 0;
+      return acc + kunjungan;
+    }, 0);
+  }, [top3Buku]);
+
+  // Get medal color based on rank
+  const getMedalColor = (rank: number): string => {
+    switch(rank) {
+      case 0: return 'text-yellow-500'; // Gold
+      case 1: return 'text-gray-400';   // Silver
+      case 2: return 'text-amber-600';  // Bronze
+      default: return 'text-gray-300';
+    }
+  };
+
+  // Fungsi untuk mendapatkan nama bulan
+  const getMonthName = (month: string) => {
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return months[parseInt(month) - 1] || month;
+  };
+
+  // Mendapatkan data grafik SEMUA BULAN
+  const getDataSemuaBulan = () => {
+    if (!rekapKunjunganData?.bulan) return [];
+    
+    const currentYear = new Date().getFullYear();
+    
+    const bulanTahunIni = rekapKunjunganData.bulan
+      .filter((item: any) => {
+        return !item.tahun || parseInt(item.tahun) === currentYear;
+      })
+      .map((item: any) => ({
+        ...item,
+        name: getMonthName(item.bulan),
+      }))
+      .sort((a: any, b: any) => parseInt(a.bulan) - parseInt(b.bulan));
+    
+    return bulanTahunIni;
+  };
+
+  // Hitung total kunjungan BULAN INI
+  const getTotalKunjunganBulanIni = () => {
+    if (!rekapKunjunganData?.bulan) return 0;
+    
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+    
+    const bulanIni = rekapKunjunganData.bulan.find((item: any) => {
+      return parseInt(item.bulan) === currentMonth && 
+             (!item.tahun || parseInt(item.tahun) === currentYear);
+    });
+    
+    return bulanIni?.pengunjung || 0;
+  };
+
+  // Hitung total kunjungan TAHUN INI
+  const getTotalKunjunganTahunIni = () => {
+    if (!rekapKunjunganData?.bulan) return 0;
+    
+    const currentYear = new Date().getFullYear();
+    
+    const total = rekapKunjunganData.bulan
+      .filter((item: any) => {
+        return !item.tahun || parseInt(item.tahun) === currentYear;
+      })
+      .reduce((sum: number, item: { pengunjung: number }) => sum + (item.pengunjung || 0), 0);
+    
+    return total;
+  };
+
+  const chartData = getDataSemuaBulan();
+  const totalKunjunganBulanIni = getTotalKunjunganBulanIni();
+  const totalKunjunganTahunIni = getTotalKunjunganTahunIni();
+
+  const loading = loadingUser || loadingPending || loadingRekap || bookLoading;
 
   return (
     <main className="min-h-screen bg-gray-50">
-      {/* Spinner merah full halaman sampai user & pendingUsers siap */}
+      {/* Spinner merah full halaman sampai data siap */}
       {loading && (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-white bg-opacity-80 z-50">
           <div className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
@@ -151,19 +282,184 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Bawah: Persetujuan Registrasi & Daftar Database */}
+          {/* Tiga Kolom: Grafik Kunjungan, Top 3 Buku, Persetujuan Registrasi */}
           <div className="flex justify-center w-full">
-            <div className="flex flex-col lg:flex-row gap-6 mt-4 md:mt-6 max-w-7xl w-full px-0">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4 md:mt-6 max-w-7xl w-full px-0">
               
-              {/* Persetujuan Registrasi */}
-              <div className="bg-white shadow-md hover:shadow-lg transition-shadow duration-200 p-5 rounded-2xl w-full lg:w-1/2">
+              {/* Grafik Kunjungan Bulanan (kolom 1) */}
+              <div className="bg-white shadow-md hover:shadow-lg transition-shadow duration-200 p-5 rounded-2xl w-full">
+                <div className="flex justify-between items-center mb-3">
+                  <h2 className="text-base md:text-lg font-bold text-gray-800">
+                    Grafik Kunjungan {new Date().getFullYear()}
+                  </h2>
+                  <button 
+                    onClick={() => router.push('/perpustakaan/kunjungan')}
+                    className="text-xs md:text-sm text-red-600 hover:text-red-800 font-medium"
+                  >
+                    Detail
+                  </button>
+                </div>
+
+                {/* Ringkasan Angka */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="bg-red-600 p-3 rounded-lg">
+                    <p className="text-xs text-white font-semibold">Bulan Ini</p>
+                    <p className="text-xl font-bold text-white">{totalKunjunganBulanIni}</p>
+                    <p className="text-xs text-white mt-1">
+                      {new Date().toLocaleDateString('id-ID', { month: 'long' })}
+                    </p>
+                  </div>
+                  <div className="bg-red-600 p-3 rounded-lg">
+                    <p className="text-xs text-white font-semibold">Tahun Ini</p>
+                    <p className="text-xl font-bold text-white">{totalKunjunganTahunIni}</p>
+                    <p className="text-xs text-white mt-1">
+                      {new Date().getFullYear()}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Grafik Data PER BULAN dalam setahun */}
+                <div className="h-32 w-full">
+                  {chartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis 
+                          dataKey="name" 
+                          tick={{ fontSize: 8 }}
+                          interval={0}
+                          angle={-45}
+                          textAnchor="end"
+                          height={40}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis 
+                          hide={true}
+                          domain={[0, 'dataMax + 2']}
+                        />
+                        <Tooltip 
+                          contentStyle={{ 
+                            fontSize: '10px', 
+                            padding: '4px 8px',
+                            borderRadius: '4px'
+                          }}
+                          formatter={(value: number) => [`${value} pengunjung`, 'Total']}
+                          labelFormatter={(label) => `Bulan: ${label}`}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="pengunjung" 
+                          stroke="#ef4444" 
+                          strokeWidth={2}
+                          dot={{ r: 2, fill: "#ef4444" }}
+                          activeDot={{ r: 4 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center">
+                      <p className="text-xs text-gray-400">Belum ada data kunjungan tahun ini</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Informasi Tambahan */}
+                <div className="mt-3 text-center">
+                  <p className="text-xs text-gray-500">
+                    Grafik kunjungan per bulan di tahun {new Date().getFullYear()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Top 3 Buku Terpopuler (kolom 2) */}
+              <div className="bg-white shadow-md hover:shadow-lg transition-shadow duration-200 p-5 rounded-2xl w-full">
+                <h2 className="text-base md:text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <Award className="text-red-600" size={20} />
+                  Top 3 Buku Terpopuler
+                </h2>
+
+                {top3Buku.length > 0 ? (
+                  <>
+                    <div className="space-y-4">
+                      {top3Buku.map((book, index) => (
+                        <div key={book.book_id} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg hover:shadow-md transition-shadow">
+                          {/* Peringkat */}
+                          <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center">
+                            {index === 0 ? (
+                              <Star className={getMedalColor(index)} size={24} fill="currentColor" />
+                            ) : (
+                              <div className={`text-xl font-bold ${getMedalColor(index)}`}>
+                                #{index + 1}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Cover Buku */}
+                          <div className="flex-shrink-0">
+                            <div className="relative w-10 h-14">
+                              <Image
+                                src={getStorageUrl(book.cover_url)}
+                                alt={book.judul}
+                                fill
+                                className="object-cover rounded-lg shadow-sm"
+                                sizes="40px"
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Info Buku */}
+                          <div className="flex-grow min-w-0">
+                            <p className="font-semibold text-gray-800 text-sm truncate" title={book.judul}>
+                              {book.judul}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Kategori: {book.kategori}
+                            </p>
+                            <p className="text-red-600 font-bold text-xs mt-1">
+                              {Number(book.total_kunjungan) || 0} pembaca
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Total Statistik Top 3 */}
+                    <div className="mt-4 pt-3 border-t border-gray-200">
+                      <p className="text-xs text-gray-600 text-center">
+                        Total <span className="font-bold text-red-600 text-sm">{totalKunjunganTop3}</span> kunjungan dari 3 buku terpopuler
+                      </p>
+                    </div>
+
+                    {/* Tombol Lihat Semua */}
+                    <div className="mt-3 text-center">
+                      <button 
+                        onClick={() => router.push('/perpustakaan/kunjungan_buku')}
+                        className="text-xs text-red-600 hover:text-red-800 font-medium"
+                      >
+                        Lihat Semua Buku →
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-48 text-center">
+                    <p className="text-gray-500 text-sm">Belum ada data buku</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Belum ada kunjungan buku
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Persetujuan Registrasi (kolom 3) */}
+              <div className="bg-white shadow-md hover:shadow-lg transition-shadow duration-200 p-5 rounded-2xl w-full">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-base md:text-lg font-bold text-gray-800">
                     Persetujuan Registrasi
                   </h2>
                   <button 
                     onClick={() => router.push('/perpustakaan/registrasi_request')}
-                    className="text-xs md:text-sm text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
+                    className="text-xs md:text-sm text-red-600 hover:text-red-800 font-medium whitespace-nowrap"
                   >
                     Lihat Semua
                   </button>
@@ -221,7 +517,7 @@ export default function Home() {
                       <div className="text-center pt-2">
                         <button
                           onClick={() => router.push('/perpustakaan/registrasi_request')}
-                          className="text-xs md:text-sm text-blue-600 hover:text-blue-800 font-medium"
+                          className="text-xs md:text-sm text-red-600 hover:text-red-800 font-medium"
                         >
                           + {pendingUsers.length - 5} lainnya
                         </button>
@@ -230,31 +526,32 @@ export default function Home() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
 
-              {/* Daftar Database */}
-              <div className="relative w-full lg:w-1/2 h-48 md:h-56 lg:h-64 rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-200 group">
-                <Image
-                  src="/assets/Admin/Card_Admin.png"
-                  alt="Daftar Database"
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 right-3 md:right-4">
-                  <p className="text-white font-bold italic text-2xl sm:text-3xl md:text-4xl lg:text-4xl leading-tight">
-                    Daftar Database
-                  </p>
-                  <button
-                    onClick={() => handleNavigation('/admin_perpus')}
-                    className="mt-2 md:mt-3 bg-white text-red font-semibold text-xs md:text-sm py-2 px-6 md:px-8 rounded-full hover:bg-red hover:text-white transition-all duration-200 shadow-md hover:shadow-lg"
-                  >
-                    Lanjut
-                  </button>
-                </div>
+          {/* Daftar Database (diletakkan di bawah ketiga kolom) */}
+          <div className="flex justify-center w-full">
+            <div className="relative w-full max-w-7xl h-48 md:h-56 lg:h-64 rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-200 group">
+              <Image
+                src="/assets/Admin/Card_Admin.png"
+                alt="Daftar Database"
+                fill
+                sizes="100vw"
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+              <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 right-3 md:right-4 flex items-center justify-between">
+                <p className="text-white font-bold italic text-2xl sm:text-3xl md:text-4xl lg:text-4xl leading-tight">
+                  Daftar Database
+                </p>
+                <button
+                  onClick={() => handleNavigation('/admin_perpus')}
+                  className="bg-white text-red-600 font-semibold text-xs md:text-sm py-2 px-6 md:px-8 rounded-full hover:bg-red-600 hover:text-white transition-all duration-200 shadow-md hover:shadow-lg"
+                >
+                  Lanjut
+                </button>
               </div>
-
             </div>
           </div>
         </div>

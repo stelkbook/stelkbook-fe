@@ -109,7 +109,7 @@ export default function RegistrationRequestsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
         <p className="mt-3 text-gray-500">Memuat data...</p>
       </div>
     );
@@ -207,7 +207,7 @@ export default function RegistrationRequestsPage() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                            user.role === 'Siswa' ? 'bg-blue-100 text-blue-800' : 
+                                            user.role === 'Siswa' ? 'bg-red-100 text-red-800' : 
                                             user.role === 'Guru' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                                         }`}>
                                             {user.role}
