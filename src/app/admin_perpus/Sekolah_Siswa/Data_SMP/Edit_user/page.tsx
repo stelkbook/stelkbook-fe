@@ -5,12 +5,36 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/authContext';
 import Head from 'next/head';
 import { getStorageUrl } from '@/helpers/storage';
-
+import { 
+  FaHome, 
+  FaUsers, 
+  FaBook, 
+  FaChartBar, 
+  FaCog,
+  FaSignOutAlt,
+  FaUserCircle,
+  FaEnvelope,
+  FaCamera,
+  FaEye,
+  FaEyeSlash,
+  FaSave,
+  FaTimes,
+  FaBars,
+  FaChevronRight,
+  FaUserGraduate,
+  FaSchool,
+  FaVenusMars,
+  FaLandmark,
+  FaBookOpen,
+  FaClipboardList,
+  FaChild,
+  FaPencilAlt
+} from 'react-icons/fa';
 
 function EditUserContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { fetchSiswaSmp, siswaSmpDetail, updateSiswaSmp } = useAuth();
+  const { fetchSiswaSmp, siswaSmpDetail, updateSiswaSmp, user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
@@ -30,15 +54,27 @@ function EditUserContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const id = searchParams.get('id');
+
+  // Cek status user
+  useEffect(() => {
+    if (user) {
+      const role = user.role?.toLowerCase();
+      if (role !== 'admin' && role !== 'perpus' && role !== 'pengurusperpustakaan') {
+        router.push('/homepage');
+      }
+    }
+  }, [user, router]);
 
   useEffect(() => {
     if (id) {
       setInitialLoading(true);
       setPreviewImage(null);
       setSelectedFile(null);
-
-      fetchSiswaSmp(id).finally(() => setInitialLoading(false));
+      
+      fetchSiswaSmp(id)
+        .finally(() => setInitialLoading(false));
     }
   }, [id, fetchSiswaSmp]);
 
@@ -74,6 +110,7 @@ function EditUserContent() {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
+      
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result as string);
@@ -99,290 +136,501 @@ function EditUserContent() {
         formData.append('gender', form.gender);
         formData.append('sekolah', form.sekolah);
         formData.append('kelas', form.kelas);
-        if (selectedFile) formData.append('avatar', selectedFile);
+        if (selectedFile) {
+          formData.append('avatar', selectedFile);
+        }
 
         await updateSiswaSmp(id, formData);
-        alert('Data siswa SMP berhasil diperbarui!');
         router.push('/admin_perpus/Sekolah_Siswa/Data_SMP');
       }
-    } catch (error: any) {
-      alert('Gagal memperbarui data siswa SMP: ' + (error.message || 'Terjadi kesalahan'));
+    } catch (error) {
+      console.error('Error updating siswa SMP:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
+  const handleLogout = async () => {
+    try {
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
-  const generateKelasOptions = () => {
-    return ['VII', 'VIII', 'IX'];
-  };
+  if (initialLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-red-50 to-orange-50">
+        <div className="flex flex-col items-center bg-white p-8 rounded-2xl shadow-xl">
+          <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-600 font-medium">Memuat data siswa SMP...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen p-4 md:p-8 bg-gray-50">
-      <Head>
-        <title>Edit User Siswa SMP</title>
-      </Head>
+    <div className="min-h-screen flex bg-gradient-to-br from-red-50 to-orange-50">
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-red-600 text-white rounded-lg shadow-lg"
+      >
+        <FaBars size={20} />
+      </button>
 
-      {/* Loading Overlay */}
-      {initialLoading && (
-        <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-red-500"></div>
-        </div>
-      )}
-
-      {/* Header Logo */}
-      <header className="flex justify-center items-center mb-4 md:mb-6">
-        <div className="flex-shrink-0 cursor-pointer" onClick={() => router.push('/admin_perpus')}>
-          <div className="relative w-[120px] h-[36px] md:w-[165px] md:h-[50px]">
-            <Image
-              src="/assets/Class/Stelk_bookTitle.png"
-              alt="Stelkbook"
-              width={165}
-              height={50}
-              priority={true}
-              className="object-contain w-full h-full"
-            />
+      {/* Sidebar */}
+      <aside className={`
+        fixed lg:static inset-y-0 left-0 z-40
+        w-64 bg-gradient-to-b from-red-600 to-red-700 shadow-2xl
+        transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        {/* Logo Section */}
+        <div className="p-6 border-b border-red-500">
+          <div className="bg-white p-3 rounded-xl shadow-lg flex items-center justify-center">
+            <FaBook className="text-red-600 text-2xl mr-2" />
+            <span className="font-bold text-xl text-red-600">StelkBook</span>
           </div>
+          <p className="text-white text-xs text-center mt-2 opacity-80">Admin Perpustakaan</p>
         </div>
-      </header>
+        
+        {/* Navigation */}
+        <nav className="p-4 space-y-2">
+          {/* Dashboard */}
+          <a 
+            href="/admin_perpus/Sekolah_Siswa" 
+            className="flex items-center space-x-3 px-4 py-3 text-white hover:bg-red-500 hover:bg-opacity-50 rounded-lg transition-all group"
+          >
+            <FaHome className="text-white text-lg" />
+            <span>Dashboard</span>
+          </a>
 
-      {/* Decorative Line */}
-      <div className="mb-6 md:mb-8">
-        <div className="relative w-full h-[16px] md:h-[20px]">
-          <Image
-            src="/assets/Class/Lines.png"
-            alt="Header decoration"
-            fill
-            sizes="100vw"
-            className="object-cover"
-            priority={false}
-          />
-        </div>
-      </div>
-
-      {/* Breadcrumb */}
-      <div className="mb-6 md:mb-8 flex items-center space-x-2">
-        <p
-          className="text-sm md:text-lg font-semibold text-gray-700 hover:underline cursor-pointer"
-          onClick={() => router.push('/admin_perpus')}
-        >
-          Database Anda
-        </p>
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
-        <p
-          className="text-sm md:text-lg font-semibold text-gray-700 hover:underline cursor-pointer"
-          onClick={() => router.push('/admin_perpus/Sekolah_Siswa/Data_SMP')}
-        >
-          Siswa SMP
-        </p>
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
-        <p className="text-sm md:text-lg font-medium text-gray-900">Edit User</p>
-      </div>
-
-      <div className="flex justify-center">
-        <div className="bg-white border border-gray-300 rounded-lg p-4 md:p-8 shadow-lg w-full max-w-4xl flex flex-col md:flex-row md:items-center md:space-x-6 space-y-6 md:space-y-0">
-          {/* Avatar Upload */}
-          <div className="flex flex-col items-center space-y-2 mx-auto md:mx-0">
-            <div
-              className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors relative"
-              onClick={triggerFileInput}
+          {/* Data Perpus */}
+          <div className="pt-2">
+            <p className="text-red-200 text-xs uppercase tracking-wider px-4 mb-2">Manajemen Perpus</p>
+            <a 
+              href="/admin_perpus/Data_perpus" 
+              className="flex items-center space-x-3 px-4 py-3 text-white hover:bg-red-500 hover:bg-opacity-50 rounded-lg transition-all group"
             >
-              {previewImage ? (
+              <FaLandmark className="text-white text-lg" />
+              <span>Data Perpus</span>
+            </a>
+          </div>
+          
+          {/* Data Siswa */}
+          <div className="pt-2">
+            <p className="text-red-200 text-xs uppercase tracking-wider px-4 mb-2">Data Sekolah</p>
+            
+            <a 
+              href="/admin_perpus/Sekolah_Siswa/Data_SD" 
+              className="flex items-center space-x-3 px-4 py-3 text-white hover:bg-red-500 hover:bg-opacity-50 rounded-lg transition-all"
+            >
+              <FaChild className="text-white text-lg" />
+              <span>Data Siswa SD</span>
+            </a>
+
+            {/* Data Siswa SMP - Active */}
+            <a 
+              href="/admin_perpus/Sekolah_Siswa/Data_SMP" 
+              className="flex items-center space-x-3 px-4 py-3 bg-red-800 text-white rounded-lg shadow-inner mt-1"
+            >
+              <FaUserGraduate className="text-white text-lg" />
+              <span>Data Siswa SMP</span>
+            </a>
+
+           
+
+            <a 
+              href="/admin_perpus/Sekolah_Siswa/Data_SMK" 
+              className="flex items-center space-x-3 px-4 py-3 text-white hover:bg-red-500 hover:bg-opacity-50 rounded-lg transition-all mt-1"
+            >
+              <FaSchool className="text-white text-lg" />
+              <span>Data Siswa SMK</span>
+            </a>
+          </div>
+
+          {/* Data Guru */}
+          <div className="pt-2">
+            <p className="text-red-200 text-xs uppercase tracking-wider px-4 mb-2">Data Guru</p>
+            <a 
+              href="/admin_perpus/Sekolah_Guru/Data_SD" 
+              className="flex items-center space-x-3 px-4 py-3 text-white hover:bg-red-500 hover:bg-opacity-50 rounded-lg transition-all"
+            >
+              <FaUserGraduate className="text-white text-lg" />
+              <span>Data Guru SD</span>
+            </a>
+            <a 
+              href="/admin_perpus/Sekolah_Guru/Data_SMP" 
+              className="flex items-center space-x-3 px-4 py-3 text-white hover:bg-red-500 hover:bg-opacity-50 rounded-lg transition-all mt-1"
+            >
+              <FaUserGraduate className="text-white text-lg" />
+              <span>Data Guru SMP</span>
+            </a>
+           
+            <a 
+              href="/admin_perpus/Sekolah_Guru/Data_SMK" 
+              className="flex items-center space-x-3 px-4 py-3 text-white hover:bg-red-500 hover:bg-opacity-50 rounded-lg transition-all mt-1"
+            >
+              <FaUserGraduate className="text-white text-lg" />
+              <span>Data Guru SMK</span>
+            </a>
+          </div>
+
+          {/* Koleksi Buku */}
+          <div className="pt-2">
+            <p className="text-red-200 text-xs uppercase tracking-wider px-4 mb-2">Koleksi</p>
+            <a 
+              href="/perpustakaan/Daftar_Buku" 
+              className="flex items-center space-x-3 px-4 py-3 text-white hover:bg-red-500 hover:bg-opacity-50 rounded-lg transition-all"
+            >
+              <FaBookOpen className="text-white text-lg" />
+              <span>Daftar Buku</span>
+            </a>
+          </div>
+        </nav>
+
+        {/* User Info Section */}
+        <div className="absolute bottom-0 w-64 p-4 border-t border-red-500 bg-red-800 bg-opacity-50">
+          <div className="flex items-center space-x-3 text-white">
+            <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center border-2 border-white">
+              {user?.avatar ? (
                 <Image
-                  src={previewImage}
-                  alt="User Avatar"
-                  fill
-                  sizes="(max-width: 640px) 80px, (max-width: 768px) 96px, 128px"
-                  className="object-cover"
-                  priority={true}
-                  unoptimized={!previewImage.startsWith('data:')}
+                  src={getStorageUrl(user.avatar)}
+                  alt={user.username}
+                  width={40}
+                  height={40}
+                  className="rounded-full object-cover w-full h-full"
                 />
               ) : (
-                <div className="flex flex-col items-center justify-center text-center p-2">
-                  <span className="text-xs md:text-sm text-gray-500">Klik untuk upload foto</span>
-                </div>
+                <FaUserCircle className="text-white text-xl" />
               )}
             </div>
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            {previewImage && (
-              <button
-                type="button"
-                onClick={triggerFileInput}
-                className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                </svg>
-              </button>
-            )}
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="grid gap-3 md:gap-4 w-full">
-            <div>
-              <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Username</label>
-              <input
-                type="text"
-                name="username"
-                value={form.username}
-                onChange={handleInputChange}
-                className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleInputChange}
-                className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
-                required
-              />
-            </div>
-
-            {/* Password */}
-            <div className="relative">
-              <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={form.password}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 pr-10"
-                  placeholder="Kosongkan jika tidak ingin mengubah"
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  {showPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
-                      <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {showPassword ? 'Password terlihat' : 'Password tersembunyi'}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold truncate" title={user?.username}>
+                {user?.username || 'Admin Perpus'}
+              </p>
+              <p className="text-xs text-red-200 flex items-center truncate">
+                <FaEnvelope className="mr-1 text-xs flex-shrink-0" />
+                <span className="truncate" title={user?.email}>
+                  {user?.email || 'admin@perpus.com'}
+                </span>
+              </p>
+              <p className="text-xs text-red-300 mt-0.5 capitalize">
+                {user?.role || 'Admin Perpus'}
               </p>
             </div>
+            <button 
+              onClick={handleLogout}
+              className="text-red-200 hover:text-white transition-colors flex-shrink-0"
+              title="Logout"
+            >
+              <FaSignOutAlt size={16} />
+            </button>
+          </div>
+        </div>
+      </aside>
 
-            {/* NIS */}
-            <div>
-              <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">NIS</label>
+      {/* Main Content */}
+      <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
+        <div className="max-w-4xl mx-auto">
+          {/* Header dengan Breadcrumb */}
+          <div className="mb-6 lg:mb-8">
+            <div className="flex items-center text-sm text-gray-600 mb-2 flex-wrap gap-1">
+              <span 
+                onClick={() => router.push('/admin_perpus/Sekolah_Siswa')}
+                className="hover:text-red-600 cursor-pointer transition-colors"
+              >
+                Dashboard
+              </span>
+              <FaChevronRight className="mx-1 text-xs" />
+              <span 
+                onClick={() => router.push('/admin_perpus/Sekolah_Siswa/Data_SMP')}
+                className="hover:text-red-600 cursor-pointer transition-colors"
+              >
+                Data Siswa SMP
+              </span>
+              <FaChevronRight className="mx-1 text-xs" />
+              <span className="text-red-600 font-medium">Edit Siswa</span>
+            </div>
+            
+            {/* Welcome Message */}
+            <div className="mb-4">
+              <h1 className="text-xl md:text-2xl font-semibold text-gray-800">
+                Selamat datang, {user?.username || 'Admin'}
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Anda sedang mengelola data siswa Sekolah Menengah Pertama (SMP)
+              </p>
+            </div>
+            
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h2 className="text-2xl lg:text-3xl font-bold text-gray-800">Edit Siswa SMP</h2>
+                <p className="text-gray-500 mt-1">Perbarui informasi data siswa</p>
+              </div>
+              <button
+                onClick={() => router.back()}
+                className="px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2"
+              >
+                <FaTimes size={16} />
+                <span>Batal</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Info Card - Admin Perpus */}
+          <div className="mb-6 bg-white p-4 rounded-lg shadow-md border-l-4 border-red-500">
+            <div className="flex items-center space-x-3">
+              <FaLandmark className="text-red-500 text-xl" />
+              <div>
+                <h3 className="font-semibold text-gray-700">Admin Perpustakaan</h3>
+                <p className="text-sm text-gray-500">
+                  Anda memiliki akses penuh ke manajemen data siswa SMP
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Form Edit Siswa */}
+          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+            {/* Profile Image Section */}
+            <div className="p-8 border-b border-gray-100 bg-gradient-to-r from-red-50 to-orange-50 flex flex-col items-center relative">
+              <div className="relative group cursor-pointer" onClick={triggerFileInput}>
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg ring-4 ring-red-100">
+                  <Image
+                    src={previewImage || '/assets/Class/icon_user.png'}
+                    alt="Profile Preview"
+                    width={128}
+                    height={128}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-red-600 bg-opacity-75 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform group-hover:scale-110">
+                  <FaCamera className="text-white text-2xl" />
+                </div>
+              </div>
+              <p className="mt-3 text-sm text-red-600 font-medium">Klik foto untuk mengubah avatar</p>
               <input
-                type="text"
-                name="nis"
-                value={form.nis}
-                onChange={handleInputChange}
-                className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
-                required
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
               />
+              
+              {/* Decorative Elements */}
+              <div className="absolute top-0 left-0 w-16 h-16 bg-red-200 rounded-br-full opacity-20"></div>
+              <div className="absolute bottom-0 right-0 w-16 h-16 bg-red-200 rounded-tl-full opacity-20"></div>
             </div>
 
-            {/* Sekolah & Kelas */}
-            <div className="flex flex-col md:flex-row md:space-x-4 space-y-3 md:space-y-0">
-              <div className="w-full md:w-1/2">
-                <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Sekolah</label>
+            {/* Form Fields */}
+            <div className="p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center">
+                  <FaUserGraduate className="mr-2 text-red-500" />
+                  Username
+                </label>
                 <input
                   type="text"
-                  value="SMP"
-                  readOnly
-                  className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 bg-gray-100"
-                />
-              </div>
-
-              <div className="w-full md:w-1/2">
-                <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Kelas</label>
-                <select
-                  name="kelas"
-                  value={form.kelas}
+                  name="username"
+                  value={form.username}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                  placeholder="Masukkan username"
                   required
-                >
-                  <option value="">Pilih Kelas</option>
-                  {generateKelasOptions().map((kelas) => (
-                    <option key={kelas} value={kelas}>
-                      {kelas}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Status & Gender */}
-            <div className="flex flex-col md:flex-row md:space-x-4 space-y-3 md:space-y-0">
-              <div className="w-full md:w-1/2">
-                <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Status</label>
-                <input
-                  type="text"
-                  value="Siswa"
-                  readOnly
-                  className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 bg-gray-100"
                 />
               </div>
 
-              <div className="w-full md:w-1/2">
-                <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Gender</label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center">
+                  <FaEnvelope className="mr-2 text-red-500" />
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                  placeholder="nama@email.com"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center">
+                  <FaEye className="mr-2 text-red-500" />
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={form.password}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all pr-10"
+                    placeholder="Kosongkan jika tidak diubah"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-600 transition-colors"
+                  >
+                    {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center">
+                  <FaBook className="mr-2 text-red-500" />
+                  NIS
+                </label>
+                <input
+                  type="text"
+                  name="nis"
+                  value={form.nis}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                  placeholder="Nomor Induk Siswa"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center">
+                  <FaVenusMars className="mr-2 text-red-500" />
+                  Jenis Kelamin
+                </label>
                 <select
                   name="gender"
                   value={form.gender}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-white"
                   required
                 >
-                  <option value="">Pilih Gender</option>
-                  <option value="Laki-Laki">Laki-Laki</option>
+                  <option value="">Pilih Jenis Kelamin</option>
+                  <option value="Laki-Laki">Laki-laki</option>
                   <option value="Perempuan">Perempuan</option>
                 </select>
               </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center">
+                  <FaSchool className="mr-2 text-red-500" />
+                  Kelas
+                </label>
+                <select
+                  name="kelas"
+                  value={form.kelas}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-white"
+                  required
+                >
+                  <option value="">Pilih Kelas</option>
+                  <option value="VII">VII</option>
+                  <option value="VIII">VIII</option>
+                  <option value="IX">IX</option>
+                </select>
+              </div>
+
+              <div className="space-y-2 lg:col-span-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center">
+                  <FaSchool className="mr-2 text-red-500" />
+                  Sekolah
+                </label>
+                <input
+                  type="text"
+                  value="SMP"
+                  readOnly
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 cursor-not-allowed"
+                />
+              </div>
             </div>
 
-            <div className="flex justify-center mt-4 md:mt-6">
+            {/* Action Buttons */}
+            <div className="p-6 bg-gradient-to-r from-red-50 to-orange-50 border-t border-gray-100 flex justify-end space-x-4">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="px-6 py-2.5 text-red-600 font-medium hover:bg-red-100 rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <FaTimes />
+                <span>Batal</span>
+              </button>
               <button
                 type="submit"
-                disabled={loading || initialLoading}
-                className="bg-red-500 text-white px-4 py-1.5 md:px-6 md:py-2 text-sm md:text-base rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 disabled:opacity-50 w-full md:w-auto transition-colors"
+                disabled={loading}
+                className="px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-medium rounded-lg hover:from-red-700 hover:to-red-800 focus:ring-4 focus:ring-red-200 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center space-x-2 shadow-lg"
               >
                 {loading ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Memproses...
-                  </span>
-                ) : 'Selesai'}
+                    <span>Menyimpan...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaSave />
+                    <span>Simpan Perubahan</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
+
+          {/* Quick Links */}
+          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+            <button
+              onClick={() => router.push('/admin_perpus/Data_perpus')}
+              className="bg-white p-3 rounded-lg shadow hover:shadow-md transition-shadow flex flex-col items-center space-y-1"
+            >
+              <FaLandmark className="text-red-500 text-lg" />
+              <span className="text-xs text-gray-600">Data Perpus</span>
+            </button>
+            <button
+              onClick={() => router.push('/admin_perpus/Sekolah_Siswa/Data_SMP')}
+              className="bg-white p-3 rounded-lg shadow hover:shadow-md transition-shadow flex flex-col items-center space-y-1"
+            >
+              <FaUserGraduate className="text-red-500 text-lg" />
+              <span className="text-xs text-gray-600">Siswa SMP</span>
+            </button>
+            <button
+              onClick={() => router.push('/admin_perpus/Sekolah_Siswa/Data_SMK')}
+              className="bg-white p-3 rounded-lg shadow hover:shadow-md transition-shadow flex flex-col items-center space-y-1"
+            >
+              <FaUsers className="text-red-500 text-lg" />
+              <span className="text-xs text-gray-600">Siswa SMK</span>
+            </button>
+            <button
+              onClick={() => router.push('/perpustakaan/Daftar_Buku')}
+              className="bg-white p-3 rounded-lg shadow hover:shadow-md transition-shadow flex flex-col items-center space-y-1"
+            >
+              <FaBookOpen className="text-red-500 text-lg" />
+              <span className="text-xs text-gray-600">Daftar Buku</span>
+            </button>
+          </div>
+
+          {/* Footer Info */}
+          <div className="mt-6 text-center text-sm text-gray-500">
+            <p>© 2024 StelkBook - Sistem Manajemen Perpustakaan</p>
+            <p className="text-xs mt-1">
+              Login sebagai: <span className="font-semibold text-red-600">{user?.username || 'Admin'}</span> ({user?.role || 'Admin Perpus'})
+            </p>
+          </div>
         </div>
-      </div>
+      </main>
+
+      {/* Overlay for mobile sidebar */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -390,8 +638,11 @@ function EditUserContent() {
 export default function Page() {
   return (
     <Suspense fallback={
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-red-50 to-orange-50">
+        <div className="flex flex-col items-center bg-white p-8 rounded-2xl shadow-xl">
+          <div className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-600 font-medium">Memuat halaman...</p>
+        </div>
       </div>
     }>
       <EditUserContent />
