@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import NotificationSuccessful from './NotificationSuccessful';
 import Navbar from '@/components/Navbar_Lainnya_Perpus2';
+import TagInput from '@/components/TagInput';
 import { useBook } from '@/context/bookContext';
 import { useRouter } from 'next/navigation';
 
@@ -15,6 +16,7 @@ function Page() {
     const [penulis, setPenulis] = useState('');
     const [tahun, setTahun] = useState('');
     const [isbn, setIsbn] = useState('');
+    const [tags, setTags] = useState('');
     const [selectedKelas, setSelectedKelas] = useState('');
     const [selectedSekolah, setSelectedSekolah] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,6 +54,7 @@ function Page() {
         formData.append('penulis', penulis);
         formData.append('tahun', tahun);
         formData.append('ISBN', isbn);
+        formData.append('tags', tags);
         if (coverFile) formData.append('cover', coverFile);
         if (pdfFile) formData.append('isi', pdfFile);
 
@@ -67,6 +70,7 @@ function Page() {
             setPenulis('');
             setTahun('');
             setIsbn('');
+            setTags('');
             setSelectedSekolah('');
             setSelectedKelas('');
             setPenerbit('');
@@ -153,6 +157,14 @@ function Page() {
                                     placeholder="(Isi Deskripsi)"
                                     className="w-full border border-gray-300 bg-gray-100 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-gray-700 font-medium mb-2">Tags</label>
+                                <TagInput 
+                                    value={tags} 
+                                    onChange={setTags} 
                                 />
                             </div>
 

@@ -12,18 +12,24 @@ function HomePage() {
   const { user } = useAuth();
 
   useEffect(() => {
-    // Check if user is not null before accessing its properties
-    if (user) {
-      const role = user.role.toLowerCase();
-      if (role === 'admin' || role === 'perpus' || role === 'pengurusperpustakaan') {
-        router.push('/perpustakaan');
-      } else if (role === 'guru') {
-        router.push('/homepage_guru');
-      } else {
-        // tetap di halaman ini (untuk siswa)
-      }
+    router.prefetch('/perpustakaan');
+    router.prefetch('/homepage_guru');
+    router.prefetch('/homepage');
+    router.prefetch('/admin');
+  }, [router]);
+
+  useEffect(() => {
+    if (!user) return;
+    const role = (user.role || '').toLowerCase();
+    let dest = '';
+    if (role === 'admin') dest = '/admin';
+    else if (role === 'perpus' || role === 'pengurusperpustakaan') dest = '/perpustakaan';
+    else if (role === 'guru') dest = '/homepage_guru';
+    else dest = ''; // siswa stays
+    if (dest) {
+      router.push(dest);
     }
-  }, [user, router]); // Add `user` and `router` to the dependency array
+  }, [user, router]);
 
   const handleButtonClick = (destination: string) => {
     const routes: Record<string, string> = {

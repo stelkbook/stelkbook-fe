@@ -4,7 +4,7 @@ import { PageFlip, SizeType } from 'page-flip'
 import * as pdfjs from 'pdfjs-dist'
 import 'pdfjs-dist/web/pdf_viewer.css'
 import './FlipBookStyle2.css'
-import { MdFullscreen } from 'react-icons/md'
+import { MdFullscreen, MdRefresh } from 'react-icons/md'
 
 // Ensure worker is configured
 if (typeof window !== 'undefined') {
@@ -15,9 +15,10 @@ if (typeof window !== 'undefined') {
 interface PageFlipBookProps {
   pdfUrl: string
   align?: 'center' | 'start'
+  showFullscreenButton?: boolean
 }
 
-const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' }) => {
+const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center', showFullscreenButton = true }) => {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const bookContainerRef = useRef<HTMLDivElement>(null)
   const pageFlipRef = useRef<PageFlip | null>(null)
@@ -26,6 +27,7 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
   const pagesRef = useRef<HTMLDivElement[]>([])
   const renderingRef = useRef<Set<number>>(new Set())
   const renderTasksRef = useRef<Map<number, any>>(new Map()) // Store render tasks to cancel them
+  const resizeObserverRef = useRef<ResizeObserver | null>(null)
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const [isLoading, setIsLoading] = useState(true)
@@ -33,6 +35,7 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
   const [isFullscreenTab, setIsFullscreenTab] = useState(false)
   const [totalPages, setTotalPages] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
+  const [pdfAspectRatio, setPdfAspectRatio] = useState(0.75) // Default A4-ish
   
   // Container dimensions state
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
@@ -52,6 +55,10 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
     }
   }
 
+  const reloadBook = () => {
+    window.location.reload()
+  }
+
   // 2. Load PDF Document (Only once when URL changes)
   useEffect(() => {
     let isMounted = true
@@ -62,6 +69,7 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
       try {
         setIsLoading(true)
         setError(null)
+        console.log("Loading PDF from:", pdfUrl);
         
         // Clean up previous document if exists
         if (pdfDocRef.current) {
@@ -74,13 +82,29 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
           rangeChunkSize: 65536, // 64KB chunks for better streaming
           disableAutoFetch: true, // Don't fetch the whole file automatically
           disableStream: false,   // Allow streaming
+          cMapUrl: 'https://unpkg.com/pdfjs-dist@4.10.38/cmaps/',
+          cMapPacked: true,
         })
+        
         const pdf = await loadingTask.promise
         
         if (isMounted) {
+          console.log("PDF Loaded successfully, pages:", pdf.numPages);
           pdfDocRef.current = pdf
           setTotalPages(pdf.numPages)
-          // We don't set loading false here yet, we wait for layout
+          
+          // Determine aspect ratio from first page
+          try {
+            const page = await pdf.getPage(1)
+            const viewport = page.getViewport({ scale: 1 })
+            if (viewport.width > 0 && viewport.height > 0) {
+                const ratio = viewport.width / viewport.height
+                console.log("PDF Aspect Ratio detected:", ratio)
+                setPdfAspectRatio(ratio)
+            }
+          } catch (e) {
+            console.warn("Could not determine PDF aspect ratio, using default", e)
+          }
         }
       } catch (err: any) {
         console.error('Error loading PDF:', err)
@@ -116,8 +140,25 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
     if (!wrapperRef.current) return
 
     let containerWidth = wrapperRef.current.clientWidth
-    const containerHeight = wrapperRef.current.clientHeight || window.innerHeight * 0.8
-    const isMobile = window.innerWidth < 768
+    let containerHeight = wrapperRef.current.clientHeight
+
+    // Ensure minimum dimensions to prevent collapse/disappearance
+    // Use window height if container height is suspiciously small (e.g. collapsed flex)
+    if (containerHeight < 400 || containerHeight === 0) {
+       // If in fullscreen tab, use full window height
+       // If embedded, try to use a reasonable default based on viewport
+       const minHeight = Math.max(window.innerHeight * 0.6, 500);
+       containerHeight = minHeight;
+    }
+    
+    // Safety check for width
+    if (containerWidth === 0) {
+        containerWidth = window.innerWidth * 0.9;
+    }
+
+    // Threshold for switching to single page view
+    // Increased to 1024px to support Tablets in Portrait mode better
+    const isSinglePage = window.innerWidth < 1024 
     const isLg = window.innerWidth >= 1024
     
     // Adjust width for left alignment offset on desktop
@@ -125,56 +166,82 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
     if (align === 'start' && isLg) {
       containerWidth -= desktopOffset
     }
-
-    // Page aspect ratio (Width / Height)
-    // A4 is 1 / 1.414 = 0.707. Here we use 400/533 = 0.75
-    const aspectRatio = 0.75 
+    
+    // Ensure positive width
+    if (containerWidth <= 0) containerWidth = 300;
 
     let pageWidth, pageHeight
 
-    if (!isMobile) {
+    if (!isSinglePage) {
       // Desktop: Double page view (Side by side)
       // Total width needed = 2 * pageWidth
       // Available area: containerWidth x containerHeight
       
       // Try fitting by height first
       pageHeight = containerHeight * 0.95 // 5% margin
-      pageWidth = pageHeight * aspectRatio
+      pageWidth = pageHeight * pdfAspectRatio
 
       // Check if it overflows width
       if (pageWidth * 2 > containerWidth) {
+        // Fit by width
         pageWidth = (containerWidth * 0.95) / 2
-        pageHeight = pageWidth / aspectRatio
+        pageHeight = pageWidth / pdfAspectRatio
       }
     } else {
-      // Mobile: Single page view
+      // Mobile/Tablet Portrait: Single page view
       pageHeight = containerHeight * 0.95
-      pageWidth = pageHeight * aspectRatio
+      pageWidth = pageHeight * pdfAspectRatio
 
       if (pageWidth > containerWidth) {
         pageWidth = containerWidth * 0.95
-        pageHeight = pageWidth / aspectRatio
+        pageHeight = pageWidth / pdfAspectRatio
       }
     }
 
-    setDimensions({ width: Math.floor(pageWidth), height: Math.floor(pageHeight) })
-  }, [isFullscreenTab])
+    // Ensure integer values to prevent sub-pixel rendering issues
+    const newW = Math.floor(pageWidth);
+    const newH = Math.floor(pageHeight);
+    
+    // Only update if dimensions changed significantly (> 5px) to prevent loop/flicker
+    setDimensions(prev => {
+        if (Math.abs(prev.width - newW) > 5 || Math.abs(prev.height - newH) > 5) {
+            console.log("Updating dimensions:", { width: newW, height: newH });
+            return { width: newW, height: newH };
+        }
+        return prev;
+    });
+  }, [isFullscreenTab, align, pdfAspectRatio])
 
   useEffect(() => {
     // Initial update
     updateDimensions()
     
-    const handleResize = () => {
-      if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current)
-      // Debounce resize to improve INP
-      resizeTimeoutRef.current = setTimeout(() => {
-          requestAnimationFrame(updateDimensions)
-      }, 200)
+    // Use ResizeObserver for robust detection of container size changes
+    if (wrapperRef.current) {
+        resizeObserverRef.current = new ResizeObserver((entries) => {
+             // Debounce resize
+            if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current)
+            resizeTimeoutRef.current = setTimeout(() => {
+                requestAnimationFrame(updateDimensions)
+            }, 500) // Increased debounce time for stability (200->500ms)
+        });
+        resizeObserverRef.current.observe(wrapperRef.current);
     }
+    
+    // Fallback to window resize
+    const handleWindowResize = () => {
+         if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current)
+            resizeTimeoutRef.current = setTimeout(() => {
+                requestAnimationFrame(updateDimensions)
+            }, 500)
+    }
+    window.addEventListener('resize', handleWindowResize)
 
-    window.addEventListener('resize', handleResize)
     return () => {
-      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('resize', handleWindowResize)
+      if (resizeObserverRef.current) {
+          resizeObserverRef.current.disconnect()
+      }
       if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current)
     }
   }, [updateDimensions])
@@ -195,18 +262,23 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
     }
 
     const pageWrapper = pagesRef.current[pageIndex]
-    // If canvas exists, assume rendered
+    // If canvas exists, assume rendered (unless dimensions changed drastically)
     if (pageWrapper.querySelector('canvas')) return
 
     try {
       renderingRef.current.add(pageIndex)
+      // console.log(`Rendering page ${pageIndex + 1}...`);
+      
       const page = await pdfDocRef.current.getPage(pageIndex + 1)
       
-      // Use device pixel ratio for sharp rendering
       const pixelRatio = window.devicePixelRatio || 1
-      const viewport = page.getViewport({ scale: 1.5 * pixelRatio }) // Slightly higher scale for zoom quality
+      const unscaledViewport = page.getViewport({ scale: 1 })
+      
+      if (unscaledViewport.width === 0) throw new Error("Invalid PDF page width")
 
-      // Validate viewport dimensions
+      const scaleX = dimensions.width / unscaledViewport.width
+      const viewport = page.getViewport({ scale: scaleX * pixelRatio })
+
       if (viewport.width === 0 || viewport.height === 0) {
           console.error(`Invalid viewport for page ${pageIndex}:`, viewport)
           return
@@ -218,17 +290,18 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
       if (context) {
         canvas.width = viewport.width
         canvas.height = viewport.height
-        // Scale down via CSS to fit container
         canvas.style.width = '100%'
         canvas.style.height = '100%'
+        canvas.style.display = 'block'
         
         const renderTask = page.render({ canvasContext: context, viewport })
         renderTasksRef.current.set(pageIndex, renderTask)
 
         await renderTask.promise
+        // console.log(`Page ${pageIndex + 1} rendered successfully`);
 
         if (!pageWrapper.querySelector('canvas')) {
-          pageWrapper.innerHTML = '' // Clear loading placeholder if any
+          pageWrapper.innerHTML = ''
           pageWrapper.appendChild(canvas)
         }
       }
@@ -240,31 +313,25 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
       renderingRef.current.delete(pageIndex)
       renderTasksRef.current.delete(pageIndex)
     }
-  }, [])
+  }, [dimensions])
 
   const clearPage = useCallback((pageIndex: number) => {
     if (!pagesRef.current[pageIndex]) return
-    
     const pageWrapper = pagesRef.current[pageIndex]
     if (pageWrapper.querySelector('canvas')) {
-       // Explicitly clear content and references
        pageWrapper.innerHTML = ''
-       // Force style reset if needed
     }
   }, [])
 
   const updateVisiblePages = useCallback((current: number) => {
     if (!pdfDocRef.current) return
-    
     const total = pdfDocRef.current.numPages
-    const RANGE = 2 // Render current +/- 2 pages
+    const RANGE = 2
     
-    // Render priority pages
     for (let i = Math.max(0, current - RANGE); i < Math.min(total, current + RANGE + 1); i++) {
       renderPage(i)
     }
 
-    // Cleanup distant pages to save memory
     const CLEANUP_RANGE = 4
     for (let i = 0; i < total; i++) {
       if (i < current - CLEANUP_RANGE || i > current + CLEANUP_RANGE) {
@@ -272,40 +339,52 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
       }
     }
   }, [renderPage, clearPage])
+  
+  // Use a ref to access updateVisiblePages inside useEffect without adding it as dependency
+  // This prevents re-initialization loops if the function reference changes
+  const updateVisiblePagesRef = useRef(updateVisiblePages);
+  useEffect(() => {
+    updateVisiblePagesRef.current = updateVisiblePages;
+  }, [updateVisiblePages]);
 
   // 5. Initialize FlipBook (Runs when Dimensions & PDF are ready)
   useEffect(() => {
-    if (!pdfDocRef.current || dimensions.width === 0 || !bookContainerRef.current) return
+    if (!pdfDocRef.current || dimensions.width === 0 || dimensions.height === 0 || !bookContainerRef.current) return
+
+    let isEffectMounted = true;
 
     const initBook = async () => {
       try {
-        // Destroy existing instance
+        console.log("Initializing FlipBook instance with:", dimensions);
+        
+        // Don't destroy if we are just updating? No, page-flip needs destroy for size change.
         if (pageFlipRef.current) {
           pageFlipRef.current.destroy()
           pageFlipRef.current = null
         }
 
         const container = bookContainerRef.current
-        if (!container) return
+        if (!container || !isEffectMounted) return
 
-        // Reset container content
         container.innerHTML = ''
         pagesRef.current = []
 
-        // Create page wrappers
         for (let i = 0; i < totalPages; i++) {
           const pageWrapper = document.createElement('div')
-          pageWrapper.className = 'page' // Must match CSS for shading/shadows
+          pageWrapper.className = 'page'
           pageWrapper.dataset.density = 'hard'
-          // Initial size
           pageWrapper.style.width = `${dimensions.width}px`
           pageWrapper.style.height = `${dimensions.height}px`
+          pageWrapper.style.overflow = 'hidden'
           
           container.appendChild(pageWrapper)
           pagesRef.current.push(pageWrapper)
         }
 
-        const isMobile = window.innerWidth < 768
+        const usePortrait = window.innerWidth < 1024
+
+        container.style.visibility = 'visible';
+        container.style.display = 'block';
 
         const pageFlip = new PageFlip(container, {
           width: dimensions.width,
@@ -313,26 +392,36 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
           size: 'fixed' as SizeType,
           maxShadowOpacity: 0.5,
           showCover: true,
-          mobileScrollSupport: false, // Set false to prevent conflicts with touch swipe
-          usePortrait: isMobile, // Single page on mobile
-          startPage: currentPage > 1 ? currentPage - 1 : 0, // Restore page
-          flippingTime: 400, // Smooth transition 400ms
+          mobileScrollSupport: false,
+          usePortrait: usePortrait,
+          startPage: currentPage > 1 ? currentPage - 1 : 0,
+          flippingTime: 400,
           clickEventForward: true,
           useMouseEvents: true,
+          swipeDistance: 30,
+          drawShadow: true,
         })
+
+        if (!isEffectMounted) {
+            pageFlip.destroy();
+            return;
+        }
 
         pageFlip.loadFromHTML(pagesRef.current)
         pageFlipRef.current = pageFlip
 
-        // Event Listeners
         pageFlip.on('flip', (e: any) => {
           const newIndex = e.data as number
           setCurrentPage(newIndex + 1)
-          updateVisiblePages(newIndex)
+          if (updateVisiblePagesRef.current) {
+              updateVisiblePagesRef.current(newIndex)
+          }
         })
 
-        // Trigger initial render
-        updateVisiblePages(currentPage - 1)
+        // Initial render
+        if (updateVisiblePagesRef.current) {
+            updateVisiblePagesRef.current(currentPage - 1)
+        }
         
         setIsLoading(false)
       } catch (err) {
@@ -341,30 +430,30 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
       }
     }
 
-    initBook()
+    const timer = setTimeout(() => {
+        initBook()
+    }, 100) 
 
     return () => {
+      isEffectMounted = false;
+      clearTimeout(timer)
       if (pageFlipRef.current) {
+        // console.log("Destroying FlipBook instance due to effect cleanup");
         pageFlipRef.current.destroy()
         pageFlipRef.current = null
       }
-      // Cancel all pending renders
       renderTasksRef.current.forEach((task) => {
-        try {
-            task.cancel()
-        } catch(e) {}
+        try { task.cancel() } catch(e) {}
       })
       renderTasksRef.current.clear()
       pagesRef.current = []
     }
-    // Re-run when dimensions change (resize) or PDF loads (totalPages)
-  }, [dimensions, totalPages, updateVisiblePages]) 
-  // Note: We don't include currentPage in dependency to avoid re-init on flip
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dimensions, totalPages]) // Removed updateVisiblePages to prevent loop
+  
   const goToPage = () => {
     if (!pageFlipRef.current) return
     const target = Math.min(Math.max(1, currentPage), totalPages)
-    // PageFlip is 0-indexed
     try {
         pageFlipRef.current.turnToPage(target - 1)
     } catch (e) {
@@ -372,13 +461,27 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
     }
   }
 
-  if (error) return <div className="text-red-500 text-center p-4">{error}</div>
+  if (error) {
+    return (
+        <div className="flex flex-col items-center justify-center p-8 bg-red-50 rounded-xl border border-red-100 text-center h-96">
+            <p className="text-red-600 font-medium mb-4">{error}</p>
+            <p className="text-gray-500 text-sm mb-4 break-all max-w-md">{pdfUrl}</p>
+            <button 
+                onClick={reloadBook}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            >
+                <MdRefresh size={20} />
+                Muat Ulang Buku
+            </button>
+        </div>
+    )
+  }
 
   return (
-    <div ref={wrapperRef} className={`relative w-full h-full flex flex-col ${align === 'center' ? 'items-center' : 'items-center lg:items-start lg:pl-16'} justify-center gap-4 hide-scrollbar overflow-hidden`}>
+    <div ref={wrapperRef} className={`relative w-full h-full flex flex-col ${align === 'center' ? 'items-center' : 'items-center lg:items-start lg:pl-16'} justify-start gap-4 hide-scrollbar min-h-[500px]`} style={{ minHeight: '500px' }}>
       {/* Controls */}
       {!isLoading && (
-        <div className="flex flex-wrap items-center justify-center gap-2 z-10 bg-white/80 p-2 rounded-lg backdrop-blur-sm shadow-sm">
+        <div className="flex flex-wrap items-center justify-center gap-2 z-10 bg-white/80 p-2 rounded-lg backdrop-blur-sm shadow-sm transition-opacity duration-300">
           <span className="text-sm font-medium">Halaman</span>
           <div className="flex items-center gap-2">
             <input
@@ -403,7 +506,7 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
       )}
 
       {/* Fullscreen Toggle */}
-      {!isFullscreenTab && !isLoading && (
+      {!isFullscreenTab && !isLoading && showFullscreenButton && (
         <button
           onClick={toggleFullScreen}
           className="absolute top-0 right-0 p-2 rounded-full bg-gray-800/60 text-white hover:bg-gray-800/80 transition z-20"
@@ -415,7 +518,7 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
 
       {/* Loading State */}
       {isLoading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-gray-50/50">
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-gray-50/50 backdrop-blur-sm rounded-xl" style={{ minHeight: '300px' }}>
           <div className="w-10 h-10 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="mt-2 text-gray-600 font-medium">Memuat buku...</p>
         </div>
@@ -423,19 +526,21 @@ const PageFlipBook: React.FC<PageFlipBookProps> = ({ pdfUrl, align = 'center' })
 
       {/* Book Container */}
       <div 
-        className="book-wrapper relative hide-scrollbar"
+        className="book-wrapper relative hide-scrollbar flex justify-center items-center w-full"
         style={{
-           width: dimensions.width,
-           height: dimensions.height,
-           // Hide until ready to prevent layout shift ugliness
-           opacity: isLoading ? 0 : 1, 
-           transition: 'opacity 0.3s ease'
+           minHeight: dimensions.height || 500,
+           zIndex: 10
         }}
       >
         <div 
           ref={bookContainerRef} 
-          className="book-container shadow-2xl" 
-          style={{ visibility: 'visible' }} // Override CSS visibility: hidden
+          className="book-container shadow-2xl"
+          style={{
+             width: dimensions.width ? `${dimensions.width}px` : '100%',
+             height: dimensions.height ? `${dimensions.height}px` : '500px',
+             // Add a background color to debug visibility
+             backgroundColor: '#f8f9fa' 
+          }}
         />
       </div>
     </div>

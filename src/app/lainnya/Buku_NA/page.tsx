@@ -4,9 +4,16 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar_Lainnya";
-import PageFlipBook from "@/components/PageFlipBook2";
+import dynamic from "next/dynamic";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { useBook } from "@/context/bookContext";
 import { getStorageUrl } from '@/helpers/storage';
+import BookRating from "@/components/BookRating";
+
+const PageFlipBook = dynamic(() => import("@/components/PageFlipBook2"), {
+  ssr: false,
+  loading: () => <p className="text-gray-500">Memuat viewer...</p>
+});
 
 
 interface Book {
@@ -19,6 +26,8 @@ interface Book {
   ISBN: string;
   isi: string;
   cover: string;
+  average_rating?: number;
+  total_ratings?: number;
 }
 
 const BukuNAContent: React.FC = () => {
@@ -40,18 +49,22 @@ const BukuNAContent: React.FC = () => {
   };
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchData = async () => {
       try {
-        const data = await fetchNonAkademikBookById(bookId);
+        const data = await fetchNonAkademikBookById(bookId, controller.signal);
         setBook(data);
-      } catch (error) {
-        console.error("Gagal memuat data buku:", error);
+      } catch (error: any) {
+        if (error.name !== 'CanceledError') {
+          console.error("Gagal memuat data buku:", error);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
+    return () => controller.abort();
   }, [bookId, fetchNonAkademikBookById]);
 
   if (loading) {
@@ -116,7 +129,7 @@ const BukuNAContent: React.FC = () => {
       </div>
 
       {/* Konten Buku */}
-      <div className="flex flex-col lg:flex-row gap-8 items-center">
+      <div className="flex flex-col lg:flex-row gap-8 items-start">
         {/* Kiri */}
         <div className="flex flex-col items-center lg:items-start">
           <Image
@@ -148,32 +161,48 @@ const BukuNAContent: React.FC = () => {
                 <strong>ISBN:</strong> {book.ISBN}
               </li>
             </ul>
+            
+            
+        
+{/* Book Rating Feature */}
+            <div className="mt-8 w-full max-w-md hidden lg:block origin-top-left lg:scale-90">
+              <BookRating 
+                bookId={book.id} 
+                initialAverageRating={book.average_rating || 0}
+                initialTotalRatings={book.total_ratings || 0}
+                variant="default"
+                isReadOnly={false} 
+              />
+            </div>
 
             <div className="mt-4 space-y-2 w-full max-w-xs">
-              <button
-                onClick={handleRouteNavigation}
-                className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
-              >
-                Kembali
-              </button>
-              <button
-                onClick={handleScrollToFlipBook}
-                className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 lg:hidden"
-              >
-                Read Now
-              </button>
+              
+              
             </div>
           </div>
         </div>
 
         {/* Kanan */}
-        <div id="flipbook" className="flex-grow overflow-x-auto w-full">
+        <div id="flipbook" className="flex-grow w-full z-0 min-h-[500px] lg:min-h-[600px]">
           {pdfUrl ? (
-            <PageFlipBook pdfUrl={pdfUrl} align="start" />
+            <ErrorBoundary>
+              <PageFlipBook pdfUrl={pdfUrl} align="start" />
+            </ErrorBoundary>
           ) : (
             <p className="text-gray-500">Memuat buku...</p>
           )}
-        </div>
+        
+
+            <div className="mt-8 w-full max-w-md lg:hidden">
+              <BookRating 
+                bookId={book.id} 
+                initialAverageRating={book.average_rating || 0}
+                initialTotalRatings={book.total_ratings || 0}
+                variant="default"
+                isReadOnly={false} 
+              />
+            </div>
+</div>
       </div>
     </div>
   );

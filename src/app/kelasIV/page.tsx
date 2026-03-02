@@ -8,7 +8,9 @@ import useAuthMiddleware from '@/hooks/auth';
 import Pagination from '@/components/Pagination';
 import SortFilter, { SortOption } from '@/components/SortFilter';
 import FilterCheckbox, { FilterState } from '@/components/FilterCheckbox';
+import BookCard from '@/components/BookCard';
 import { getStorageUrl } from '@/helpers/storage';
+import TopBooks from '@/components/TopBooks';
 
 
 interface Book {
@@ -21,34 +23,10 @@ interface Book {
   mapel?: string;
   penerbit?: string;
   penulis?: string;
+  average_rating?: number;
+  total_ratings?: number;
+  tags?: string[] | string;
 }
-
-const BookCard = ({ book }: { book: Book }) => {
-  const router = useRouter();
-
-  return (
-    <div
-      className="text-center cursor-pointer hover:bg-gray-100 p-2 rounded-lg w-full max-w-[180px] transition-colors flex flex-col items-center"
-      onClick={() => book.path && router.push(book.path)}
-    >
-      <div className="relative w-full pb-[133%] rounded-lg overflow-hidden shadow-md mx-auto">
-        <Image
-           src={book.cover}
-           alt={book.judul}
-           fill
-           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 180px"
-           className="rounded-md object-cover"
-           priority
-           onError={(e) => {
-             const target = e.target as HTMLImageElement;
-             target.src = '/assets/default-cover.png';
-           }}
-         />
-      </div>
-      <p className="mt-2 text-sm font-poppins font-semibold text-center line-clamp-2">{book.judul}</p>
-    </div>
-  );
-};
 
 function PageContent() {
   useAuthMiddleware();
@@ -102,7 +80,15 @@ function PageContent() {
       const matchesSubject = activeFilters.mapel.length === 0 || (book.mapel && activeFilters.mapel.includes(book.mapel));
       const matchesPublisher = activeFilters.penerbit.length === 0 || (book.penerbit && activeFilters.penerbit.includes(book.penerbit));
       const matchesAuthor = activeFilters.penulis.length === 0 || (book.penulis && activeFilters.penulis.includes(book.penulis));
-      return matchesClass && matchesSubject && matchesPublisher && matchesAuthor;
+      
+      // Tag matching
+      const bookTags = Array.isArray(book.tags) 
+        ? book.tags 
+        : (typeof book.tags === 'string' ? book.tags.split(',').map((t: string) => t.trim()) : []);
+      const matchesTags = !activeFilters.tags || activeFilters.tags.length === 0 || 
+        activeFilters.tags.some(tag => bookTags.includes(tag));
+
+      return matchesClass && matchesSubject && matchesPublisher && matchesAuthor && matchesTags;
     });
 
     const processedBooks = filteredBooks.map((book: any) => {
@@ -119,7 +105,10 @@ function PageContent() {
         kelas: book.kelas || book.kategori,
         mapel: book.mapel,
         penerbit: book.penerbit,
-        penulis: book.penulis
+        penulis: book.penulis,
+        average_rating: book.average_rating,
+        total_ratings: book.total_ratings,
+        tags: book.tags
       };
     });
 
@@ -127,6 +116,10 @@ function PageContent() {
       processedBooks.sort((a: Book, b: Book) => a.judul.localeCompare(b.judul));
     } else if (sortOption === 'desc') {
       processedBooks.sort((a: Book, b: Book) => b.judul.localeCompare(a.judul));
+    } else if (sortOption === 'rating-high') {
+      processedBooks.sort((a: Book, b: Book) => (b.average_rating || 0) - (a.average_rating || 0));
+    } else if (sortOption === 'rating-low') {
+      processedBooks.sort((a: Book, b: Book) => (a.average_rating || 0) - (b.average_rating || 0));
     }
 
     setDisplayBooks(processedBooks);
@@ -175,6 +168,7 @@ function PageContent() {
 
         {/* Books Section */}
         <div className="flex-grow">
+          <TopBooks category="IV" />
           {displayBooks.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 justify-items-center">
               {displayBooks.map((book) => (

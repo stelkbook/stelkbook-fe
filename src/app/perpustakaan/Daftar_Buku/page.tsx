@@ -10,6 +10,7 @@ import Pagination from '@/components/Pagination';
 import SortFilter, { SortOption } from '@/components/SortFilter';
 import FilterCheckbox, { FilterState } from '@/components/FilterCheckbox';
 import { getStorageUrl } from '@/helpers/storage';
+import BookCard from '@/components/BookCard';
 
 interface Book {
   id: number;
@@ -21,6 +22,8 @@ interface Book {
   mapel?: string;
   penerbit?: string;
   penulis?: string;
+  average_rating?: number;
+  total_ratings?: number;
 }
 
 function BookContent() {
@@ -74,6 +77,8 @@ function BookContent() {
           judul: book.judul,
           cover: coverUrl,
           path: `/perpustakaan/Daftar_Buku/Buku?id=${book.id}`,
+          average_rating: book.average_rating,
+          total_ratings: book.total_ratings
         };
       });
 
@@ -164,52 +169,41 @@ function BookContent() {
           justify-items-center
         "
       >
-        {combinedBooks.map((book, index) => (
-          <div
-            key={book.id}
-            className="text-center cursor-pointer hover:bg-gray-100 p-2 rounded-lg w-full max-w-[180px]"
-            onClick={() => handleNavigationClick(book.path!)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={e => {
-              if (e.key === 'Enter') handleNavigationClick(book.path!);
-            }}
-          >
-           {book.id === 0 ? (
-            <div className="relative w-full pb-[133%] bg-gradient-to-b from-red to-red rounded-lg shadow-md">
-                <div className="absolute inset-0 flex items-center justify-center">
-                <Image
-                    src={book.cover}
-                    alt="Tambah Buku"
-                    width={80} // ikon besar
-                    height={80}
-                    priority
-                    className="object-contain"
-                    style={{width: 'auto', height: 'auto'}}
-                />
+        {combinedBooks.map((book, index) => {
+          if (book.id === 0) {
+            return (
+              <div
+                key={book.id}
+                className="text-center cursor-pointer hover:bg-gray-100 p-2 rounded-lg w-full max-w-[180px] flex flex-col items-center"
+                onClick={() => handleNavigationClick(book.path!)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleNavigationClick(book.path!);
+                }}
+              >
+                <div className="relative w-full pb-[133%] bg-gradient-to-b from-red to-red rounded-lg shadow-md">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                    <Image
+                        src={book.cover}
+                        alt="Tambah Buku"
+                        width={80} // ikon besar
+                        height={80}
+                        priority
+                        className="object-contain"
+                        style={{width: 'auto', height: 'auto'}}
+                    />
+                    </div>
+                    <div className="absolute bottom-3 right-3 text-white font-bold text-2xl">+</div>
                 </div>
-                <div className="absolute bottom-3 right-3 text-white font-bold text-2xl">+</div>
-            </div>
-            ) : (
-              <div className="relative w-full pb-[133%] rounded-lg overflow-hidden shadow-md mx-auto">
-                <Image
-                  src={book.cover}
-                  alt={book.judul}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 180px"
-                  priority={index < 8}
-                  className="object-cover rounded-lg"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).src = '/assets/default-cover.png';
-                  }}
-                />
+                <p className="mt-2 text-sm font-poppins font-semibold whitespace-pre-line text-center">
+                  {book.judul}
+                </p>
               </div>
-            )}
-            <p className="mt-2 text-sm font-poppins font-semibold whitespace-pre-line text-center">
-              {book.judul}
-            </p>
-          </div>
-        ))}
+            );
+          }
+          return <BookCard key={book.id} book={book} />;
+        })}
       </div>
 
       {/* Pagination Controls */}

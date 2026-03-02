@@ -3,6 +3,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import NotificationSuccessful from './NotificationEditSuccessful';
 import Navbar from '@/components/Navbar_Lainnya_Perpus';
+import TagInput from '@/components/TagInput';
 import { useBook } from '@/context/bookContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getStorageUrl } from '@/helpers/storage';
@@ -26,6 +27,7 @@ function EditBukuContent() {
     const [penulis, setPenulis] = useState('');
     const [tahun, setTahun] = useState('');
     const [isbn, setIsbn] = useState('');
+    const [tags, setTags] = useState('');
     const [selectedKelas, setSelectedKelas] = useState('');
     const [selectedSekolah, setSelectedSekolah] = useState('');
     const [kelasOptions, setKelasOptions] = useState<string[]>([]);
@@ -48,6 +50,7 @@ function EditBukuContent() {
                 setPenulis(data.penulis);
                 setTahun(data.tahun);
                 setIsbn(data.ISBN);
+                setTags(data.tags || '');
                 
                 // Handle sekolah and kategori for NA case
                 if (data.kategori === 'NA') {
@@ -98,6 +101,7 @@ function EditBukuContent() {
         formData.append('penulis', penulis);
         formData.append('tahun', tahun);
         formData.append('ISBN', isbn);
+        formData.append('tags', tags);
         if (coverFile) {
             formData.append('cover', coverFile);
         }
@@ -172,6 +176,14 @@ function EditBukuContent() {
                                         onChange={(e) => setDeskripsi(e.target.value)}
                                         placeholder="(Isi Deskripsi)"
                                         className="w-full border border-gray-300 bg-gray-100 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div className="mb-4">
+                                    <label className="block text-gray-700 font-medium mb-2">Tags</label>
+                                    <TagInput 
+                                        value={tags} 
+                                        onChange={setTags} 
                                     />
                                 </div>
 

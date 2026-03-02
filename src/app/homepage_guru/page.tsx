@@ -5,11 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar_Guru';
 import { useBook } from '@/context/bookContext';
 import useAuthMiddleware from '@/hooks/auth';
+import useRoleGuard from '@/hooks/roleGuard';
 import { useAuth } from '@/context/authContext';
 import Pagination from '@/components/Pagination';
 import SortFilter, { SortOption } from '@/components/SortFilter';
 import FilterCheckbox, { FilterState } from '@/components/FilterCheckbox';
 import { getStorageUrl } from '@/helpers/storage';
+import BookCard from '@/components/BookCard';
 
 
 interface Book {
@@ -23,46 +25,13 @@ interface Book {
   sekolah?: string;
   penerbit?: string;
   penulis?: string;
+  average_rating?: number;
+  total_ratings?: number;
 }
-
-const BookCard = ({ book }: { book: Book }) => {
-  const router = useRouter();
-
-  return (
-    <div
-      className="text-center cursor-pointer hover:bg-gray-100 p-2 rounded-lg w-full max-w-[180px]"
-      onClick={() => book.path && router.push(book.path)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={e => { if (e.key === 'Enter' && book.path) router.push(book.path) }}
-    >
-      <div className="relative w-full pb-[133%] rounded-lg overflow-hidden shadow-md mx-auto">
-        <Image
-          src={book.cover}
-          alt={book.judul}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 180px"
-          className="object-cover rounded-lg"
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = '/assets/default-cover.png';
-          }}
-        />
-      </div>
-      <p className="mt-2 text-sm font-poppins font-semibold whitespace-pre-line text-center">
-        {book.judul}
-      </p>
-      {book.kategori && (
-        <p className="text-xs text-gray-500">Kelas {book.kategori}</p>
-      )}
-      {book.sekolah && (
-        <p className="text-xs text-gray-500">{book.sekolah}</p>
-      )}
-    </div>
-  );
-};
 
 function GuruPageContent() {
   useAuthMiddleware();
+  useRoleGuard(['Guru']);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
@@ -77,6 +46,16 @@ function GuruPageContent() {
   });
 
   const currentPage = Number(searchParams.get('page')) || 1;
+
+  useEffect(() => {
+    router.prefetch('/homepage_guru/Buku');
+    router.prefetch('/kelasVII_guru');
+    router.prefetch('/kelasVIII_guru');
+    router.prefetch('/kelasIX_guru');
+    router.prefetch('/kelasX_guru');
+    router.prefetch('/kelasXI_guru');
+    router.prefetch('/kelasXII_guru');
+  }, [router]);
 
   useEffect(() => {
     if (user) {
@@ -143,7 +122,9 @@ function GuruPageContent() {
           mapel: book.mapel,
           sekolah: book.sekolah,
           penerbit: book.penerbit,
-          penulis: book.penulis
+          penulis: book.penulis,
+          average_rating: book.average_rating,
+          total_ratings: book.total_ratings
         };
       });
 

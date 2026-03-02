@@ -4,6 +4,7 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
+import BookCard from "@/components/BookCard";
 import { useBook } from "@/context/bookContext";
 import { getStorageUrl } from '@/helpers/storage';
 
@@ -16,6 +17,8 @@ interface Book {
   penulis?: string;
   kategori?: string;
   path?: string;
+  tags?: string;
+  average_rating?: number;
 }
 
 const SearchPageContent = () => {
@@ -55,6 +58,8 @@ const SearchPageContent = () => {
           penulis: book.penulis || "Unknown Author",
           kategori: book.kategori || "",
           path: `search/books?id=${book.id}`,
+          tags: book.tags || "",
+          average_rating: book.average_rating,
         };
       });
 
@@ -63,7 +68,8 @@ const SearchPageContent = () => {
           book.judul.toLowerCase().includes(query) ||
           (book.kategori && book.kategori.toLowerCase().includes(query)) ||
           (book.subject && book.subject.toLowerCase().includes(query)) ||
-          (book.penulis && book.penulis.toLowerCase().includes(query))
+          (book.penulis && book.penulis.toLowerCase().includes(query)) ||
+          (book.tags && book.tags.toLowerCase().includes(query))
       );
 
       setFilteredBooks(results);
@@ -102,29 +108,10 @@ const SearchPageContent = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 justify-items-center">
         {filteredBooks.length > 0 ? (
           filteredBooks.map((book) => (
-            <div
-              key={book.id}
-              className="cursor-pointer group relative flex flex-col items-center text-center"
-              onClick={() => navigateToBook(book.id)}
-            >
-              <div className="w-full aspect-[3/4] overflow-hidden rounded-lg shadow-md bg-gray-200">
-                <Image
-                  src={book.cover}
-                  alt={book.judul}
-                  width={150}
-                  height={220}
-                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                  style={{ width: "100%", height: "100%" }}
-                />
-              </div>
-              <h3 className="mt-3 text-sm font-semibold text-gray-800 line-clamp-2">
-                {book.judul}
-              </h3>
-              <p className="text-xs text-gray-500 mt-1">{book.penulis}</p>
-            </div>
+            <BookCard key={book.id} book={book} />
           ))
         ) : (
           <div className="col-span-full text-center py-20">

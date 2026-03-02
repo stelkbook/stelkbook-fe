@@ -13,18 +13,25 @@ function HomePage() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user) {
-      const role = user.role.toLowerCase();
-      if (role === 'admin') {
-        // tetap di halaman ini
-      } else if (role === 'guru') {
-        router.push('/homepage_guru');
-      } else if (role === 'perpus' || role === 'pengurusperpustakaan') {
-        router.push('/perpustakaan');
-      } else {
-        router.push('/homepage');
-      }
+    router.prefetch('/perpustakaan');
+    router.prefetch('/homepage_guru');
+    router.prefetch('/homepage');
+    router.prefetch('/admin');
+  }, [router]);
+
+  useEffect(() => {
+    if (!user) return;
+    const role = (user.role || '').toLowerCase();
+    if (role === 'admin') return;
+    if (role === 'guru') {
+      router.push('/homepage_guru');
+      return;
     }
+    if (role === 'perpus' || role === 'pengurusperpustakaan') {
+      router.push('/perpustakaan');
+      return;
+    }
+    router.push('/homepage');
   }, [user, router]);
 
   const handleButtonClick = (destination: string) => {

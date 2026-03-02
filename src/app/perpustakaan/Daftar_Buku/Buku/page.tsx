@@ -4,11 +4,16 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import WarningModalBuku from "./WarningModalBuku3";
-import PageFlipBook from "@/components/PageFlipBook2";
+import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar_Lainnya_Perpus";
 import SkeletonBookDetail from "@/components/SkeletonBookDetail";
 import { useBook } from "@/context/bookContext";
 import { getStorageUrl } from "@/helpers/storage";
+
+const PageFlipBook = dynamic(() => import("@/components/PageFlipBook2"), {
+  ssr: false,
+  loading: () => <p className="text-gray-500">Memuat viewer...</p>
+});
 
 interface Book {
   id: number;
@@ -36,18 +41,22 @@ const BookContent: React.FC = () => {
 
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchData = async () => {
       try {
-        const data = await fetchBookById(bookId);
+        const data = await fetchBookById(bookId, controller.signal);
         setBook(data);
-      } catch (error) {
-        console.error("Error fetching book or PDF URL:", error);
+      } catch (error: any) {
+        if (error.name !== 'CanceledError') {
+          console.error("Error fetching book or PDF URL:", error);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
+    return () => controller.abort();
   }, [bookId, fetchBookById]);
 
   const handleDeleteBook = async (id: number) => {

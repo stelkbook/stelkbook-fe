@@ -5,16 +5,18 @@ import { FaUserCircle, FaCheck, FaTimes, FaPlus, FaBook } from 'react-icons/fa';
 import Navbar from '@/components/Navbar_Lainnya_Perpus2';
 import { useRouter } from 'next/navigation';
 import useAuthMiddleware from '@/hooks/auth';
+import useRoleGuard from '@/hooks/roleGuard';
 import { useAuth } from '@/context/authContext';
 import { useEffect, useState, useMemo } from 'react';
 import { FaBookOpen } from 'react-icons/fa6';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import dynamic from 'next/dynamic';
 import { useBook } from '@/context/bookContext';
 import { getStorageUrl } from '@/helpers/storage';
 import { Award, Star } from 'lucide-react';
 
 export default function Home() {
   useAuthMiddleware();
+  useRoleGuard(['Admin', 'Perpus', 'PengurusPerpustakaan']);
   const router = useRouter();
   const { 
     user, 
@@ -204,6 +206,17 @@ export default function Home() {
 
   const loading = loadingUser || loadingPending || loadingRekap || bookLoading;
 
+  const RekapKunjunganChart = useMemo(
+    () => dynamic(() => import('@/components/RekapKunjunganChart'), { ssr: false }),
+    []
+  );
+
+  useEffect(() => {
+    router.prefetch('/perpustakaan/kunjungan');
+    router.prefetch('/perpustakaan/Daftar_Buku');
+    router.prefetch('/admin_perpus');
+  }, [router]);
+
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Spinner merah full halaman sampai data siap */}
@@ -319,50 +332,7 @@ export default function Home() {
                 </div>
 
                 {/* Grafik Data PER BULAN dalam setahun */}
-                <div className="h-32 w-full">
-                  {chartData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                        <XAxis 
-                          dataKey="name" 
-                          tick={{ fontSize: 8 }}
-                          interval={0}
-                          angle={-45}
-                          textAnchor="end"
-                          height={40}
-                          axisLine={false}
-                          tickLine={false}
-                        />
-                        <YAxis 
-                          hide={true}
-                          domain={[0, 'dataMax + 2']}
-                        />
-                        <Tooltip 
-                          contentStyle={{ 
-                            fontSize: '10px', 
-                            padding: '4px 8px',
-                            borderRadius: '4px'
-                          }}
-                          formatter={(value: number) => [`${value} pengunjung`, 'Total']}
-                          labelFormatter={(label) => `Bulan: ${label}`}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="pengunjung" 
-                          stroke="#ef4444" 
-                          strokeWidth={2}
-                          dot={{ r: 2, fill: "#ef4444" }}
-                          activeDot={{ r: 4 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="h-full flex items-center justify-center">
-                      <p className="text-xs text-gray-400">Belum ada data kunjungan tahun ini</p>
-                    </div>
-                  )}
-                </div>
+                <RekapKunjunganChart data={chartData as any} />
 
                 {/* Informasi Tambahan */}
                 <div className="mt-3 text-center">

@@ -3,8 +3,13 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import WarningModalBuku from "./WarningModalBuku";
-import PageFlipBook from "@/components/PageFlipBook2";
+import dynamic from "next/dynamic";
 import Navbar from '@/components/Navbar_Perpus';
+
+const PageFlipBook = dynamic(() => import("@/components/PageFlipBook2"), {
+  ssr: false,
+  loading: () => <p className="text-gray-500">Memuat viewer...</p>
+});
 
 function Page() {
   const [showWarningModal, setShowWarningModal] = useState(false);

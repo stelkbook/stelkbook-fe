@@ -759,10 +759,10 @@ export const BookProvider = ({ children }) => {
         }
     },[])
 
-    const fetchBookById = useCallback(async (id) => {
+    const fetchBookById = useCallback(async (id, signal) => {
         setLoading(true);
         try {
-            const response = await axios.get(`/books/${id}`);
+            const response = await axios.get(`/books/${id}`, { signal });
             const data = response.data;
             return {
                 ...data,
@@ -771,7 +771,7 @@ export const BookProvider = ({ children }) => {
                 tahun: data.tahun_terbit || data.tahun,
             };
         } catch (err) {
-            setError(err.message);
+            if (err.name !== 'CanceledError') setError(err.message);
         } finally {
             setLoading(false);
         }
@@ -784,10 +784,10 @@ export const BookProvider = ({ children }) => {
     
 
     // Fungsi untuk mengambil buku siswa berdasarkan ID
-    const fetchSiswaBookById = async (id) => {
+    const fetchSiswaBookById = async (id, signal) => {
         setLoading(true);
         try {
-            const response = await axios.get(`/books/siswa/${id}`);
+            const response = await axios.get(`/books/siswa/${id}`, { signal });
             return response.data;
         } catch (err) {
             setError(err.message);
@@ -797,10 +797,10 @@ export const BookProvider = ({ children }) => {
     };
 
     // Fungsi untuk mengambil buku guru berdasarkan ID
-    const fetchGuruBookById = useCallback(async (id) => {
+    const fetchGuruBookById = useCallback(async (id, signal) => {
         setLoading(true);
         try {
-            const response = await axios.get(`/books/guru/${id}`);
+            const response = await axios.get(`/books/guru/${id}`, { signal });
             return response.data;
         } catch (err) {
             setError(err.message);
@@ -810,17 +810,17 @@ export const BookProvider = ({ children }) => {
     },[])
 
     // Fungsi untuk mengambil buku perpus berdasarkan ID
-    const fetchPerpusBookById = useCallback(async (id) => {
+    const fetchPerpusBookById = useCallback(async (id, signal) => {
         setLoading(true);
         try {
-            const response = await axios.get(`/books-perpus/${id}`);
+            const response = await axios.get(`/books-perpus/${id}`, { signal });
             return response.data;
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
-    });
+    },[])
 
     // Tambahkan fungsi refreshNonAkademikBooks
 const refreshNonAkademikBooks = useCallback(async () => {
@@ -841,148 +841,148 @@ const refreshNonAkademikBooks = useCallback(async () => {
     }
 }, []);
 
-const fetchKelas1BookById = useCallback(async (id) => {
+const fetchKelas1BookById = useCallback(async (id, signal) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-1/${id}`);
+        const response = await axios.get(`/books-kelas-1/${id}`, { signal });
         return response.data;
     } catch (err) {
-        setError(err.message);
+        if (err.name !== 'CanceledError') setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas2BookById = useCallback(async (id) => {
+const fetchKelas2BookById = useCallback(async (id, signal) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-2/${id}`);
+        const response = await axios.get(`/books-kelas-2/${id}`, { signal });
         return response.data;
     } catch (err) {
-        setError(err.message);
+        if (err.name !== 'CanceledError') setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
 
-const fetchKelas3BookById = useCallback(async (id) => {
+const fetchKelas3BookById = useCallback(async (id, signal) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-3/${id}`);
+        const response = await axios.get(`/books-kelas-3/${id}`, { signal });
         return response.data;
     } catch (err) {
-        setError(err.message);
+        if (err.name !== 'CanceledError') setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas4BookById = useCallback(async (id) => {
+const fetchKelas4BookById = useCallback(async (id, signal) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-4/${id}`);
+        const response = await axios.get(`/books-kelas-4/${id}`, { signal });
         return response.data;
     } catch (err) {
-        setError(err.message);
+        if (err.name !== 'CanceledError') setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas5BookById = useCallback(async (id) => {
+const fetchKelas5BookById = useCallback(async (id, signal) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-5/${id}`);
+        const response = await axios.get(`/books-kelas-5/${id}`, { signal });
         return response.data;
     } catch (err) {
-        setError(err.message);
+        if (err.name !== 'CanceledError') setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas6BookById = useCallback(async (id) => {
+const fetchKelas6BookById = useCallback(async (id, signal) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-6/${id}`);
+        const response = await axios.get(`/books-kelas-6/${id}`, { signal });
         return response.data;
     } catch (err) {
-        setError(err.message);
+        if (err.name !== 'CanceledError') setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas7BookById = useCallback(async (id) => {
+const fetchKelas7BookById = useCallback(async (id, signal) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-7/${id}`);
+        const response = await axios.get(`/books-kelas-7/${id}`, { signal });
         return response.data;
     } catch (err) {
-        setError(err.message);
+        if (err.name !== 'CanceledError') setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas8BookById = useCallback(async (id) => {
+const fetchKelas8BookById = useCallback(async (id, signal) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-8/${id}`);
+        const response = await axios.get(`/books-kelas-8/${id}`, { signal });
         return response.data;
     } catch (err) {
-        setError(err.message);
+        if (err.name !== 'CanceledError') setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas9BookById = useCallback(async (id) => {
+const fetchKelas9BookById = useCallback(async (id, signal) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-9/${id}`);
+        const response = await axios.get(`/books-kelas-9/${id}`, { signal });
         return response.data;
     } catch (err) {
-        setError(err.message);
+        if (err.name !== 'CanceledError') setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas10BookById = useCallback(async (id) => {
+const fetchKelas10BookById = useCallback(async (id, signal) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-10/${id}`);
+        const response = await axios.get(`/books-kelas-10/${id}`, { signal });
         return response.data;
     } catch (err) {
-        setError(err.message);
+        if (err.name !== 'CanceledError') setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas11BookById = useCallback(async (id) => {
+const fetchKelas11BookById = useCallback(async (id, signal) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-11/${id}`);
+        const response = await axios.get(`/books-kelas-11/${id}`, { signal });
         return response.data;
     } catch (err) {
-        setError(err.message);
+        if (err.name !== 'CanceledError') setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas12BookById = useCallback(async (id) => {
+const fetchKelas12BookById = useCallback(async (id, signal) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-12/${id}`);
+        const response = await axios.get(`/books-kelas-12/${id}`, { signal });
         return response.data;
     } catch (err) {
-        setError(err.message);
+        if (err.name !== 'CanceledError') setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
 
 // Perbaiki fetchNonAkademikBookById
-const fetchNonAkademikBookById = useCallback(async (id) => {
+const fetchNonAkademikBookById = useCallback(async (id, signal) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books/non-akademik/${id}`);
+        const response = await axios.get(`/books/non-akademik/${id}`, { signal });
         return response.data;
     } catch (err) {
-        setError(err.message);
+        if (err.name !== 'CanceledError') setError(err.message);
     } finally {
         setLoading(false);
     }

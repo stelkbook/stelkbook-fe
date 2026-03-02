@@ -9,6 +9,8 @@ import Pagination from '@/components/Pagination';
 import SortFilter, { SortOption } from '@/components/SortFilter';
 import FilterCheckbox, { FilterState } from '@/components/FilterCheckbox';
 import { getStorageUrl } from '@/helpers/storage';
+import TopBooks from '@/components/TopBooks';
+import BookCard from '@/components/BookCard';
 
 
 interface Book {
@@ -21,34 +23,9 @@ interface Book {
   mapel?: string;
   penerbit?: string;
   penulis?: string;
+  average_rating?: number;
+  total_ratings?: number;
 }
-
-const BookCard = ({ book }: { book: Book }) => {
-  const router = useRouter();
-
-  return (
-    <div
-      className="text-center cursor-pointer hover:bg-gray-100 p-2 rounded-lg w-full max-w-[180px] transition-colors flex flex-col items-center"
-      onClick={() => book.path && router.push(book.path)}
-    >
-      <div className="relative w-full pb-[133%] rounded-lg overflow-hidden shadow-md mx-auto">
-        <Image
-           src={book.cover}
-           alt={book.judul}
-           fill
-           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 180px"
-           className="rounded-md object-cover"
-           priority
-           onError={(e) => {
-             const target = e.target as HTMLImageElement;
-             target.src = '/assets/default-cover.png';
-           }}
-         />
-      </div>
-      <p className="mt-2 text-sm font-poppins font-semibold text-center line-clamp-2">{book.judul}</p>
-    </div>
-  );
-};
 
 function PageContent() {
   useAuthMiddleware();
@@ -119,7 +96,9 @@ function PageContent() {
         kelas: book.kelas || book.kategori,
         mapel: book.mapel,
         penerbit: book.penerbit,
-        penulis: book.penulis
+        penulis: book.penulis,
+        average_rating: book.average_rating,
+        total_ratings: book.total_ratings
       };
     });
 
@@ -175,6 +154,7 @@ function PageContent() {
 
         {/* Books Section */}
         <div className="flex-grow">
+          <TopBooks category="VII" />
           {displayBooks.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 justify-items-center">
               {displayBooks.map((book) => (

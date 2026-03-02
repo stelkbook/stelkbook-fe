@@ -4,9 +4,15 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar_Lainnya_Guru";
-import PageFlipBook from "@/components/PageFlipBook2";
+import dynamic from "next/dynamic";
 import { useBook } from "@/context/bookContext";
 import { getStorageUrl } from '@/helpers/storage';
+import BookRating from "@/components/BookRating";
+
+const PageFlipBook = dynamic(() => import("@/components/PageFlipBook2"), {
+  ssr: false,
+  loading: () => <p className="text-gray-500">Memuat viewer...</p>
+});
 
 
 interface Book {
@@ -19,9 +25,16 @@ interface Book {
   ISBN: string;
   isi: string;
   cover: string;
+  average_rating?: number;
+  total_ratings?: number;
 }
 
 const BookContent = () => {
+  const handleScrollToFlipBook = () => {
+    const flipBook = document.getElementById("flipbook");
+    flipBook?.scrollIntoView({ behavior: "smooth" });
+  };
+
   const searchParams = useSearchParams();
   const bookId = parseInt(searchParams.get("id") || "0", 10);
   const { fetchBookById } = useBook();
@@ -30,18 +43,22 @@ const BookContent = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchData = async () => {
       try {
-        const data = await fetchBookById(bookId);
+        const data = await fetchBookById(bookId, controller.signal);
         setBook(data);
-      } catch (error) {
-        console.error("Gagal memuat data buku:", error);
+      } catch (error: any) {
+        if (error.name !== 'CanceledError') {
+          console.error("Gagal memuat data buku:", error);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
+    return () => controller.abort();
   }, [bookId, fetchBookById]);
 
   if (loading) {
@@ -107,6 +124,25 @@ const BookContent = () => {
                 <li><strong>Tahun:</strong> {book.tahun}</li>
                 <li><strong>ISBN:</strong> {book.ISBN}</li>
               </ul>
+            
+            {/* Read Now Button (Mobile Only) */}
+            <button
+              onClick={handleScrollToFlipBook}
+              className="mt-6 w-full bg-green-500 text-white py-3 rounded-xl font-bold shadow-md hover:bg-green-600 transition-all lg:hidden flex items-center justify-center gap-2"
+            >
+              <span>📖</span> Baca Sekarang
+            </button>
+        
+{/* Book Rating Feature */}
+            <div className="mt-8 w-full max-w-md hidden lg:block origin-top-left lg:scale-90">
+              <BookRating 
+                bookId={book.id} 
+                initialAverageRating={book.average_rating || 0}
+                initialTotalRatings={book.total_ratings || 0}
+                variant="default"
+                isReadOnly={false} 
+              />
+            </div>
               <button
     onClick={handleDownload}
     className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
@@ -117,13 +153,24 @@ const BookContent = () => {
           </div>
 
           {/* Kanan */}
-          <div className="flex-grow overflow-x-auto w-full">
+          <div id="flipbook" className="flex-grow w-full z-0 min-h-[500px] lg:min-h-[600px]">
             {pdfUrl ? (
               <PageFlipBook pdfUrl={pdfUrl} align="start" />
             ) : (
               <p className="text-gray-500">Memuat buku...</p>
             )}
-          </div>
+          
+
+            <div className="mt-8 w-full max-w-md lg:hidden">
+              <BookRating 
+                bookId={book.id} 
+                initialAverageRating={book.average_rating || 0}
+                initialTotalRatings={book.total_ratings || 0}
+                variant="default"
+                isReadOnly={false} 
+              />
+            </div>
+</div>
         </div>
       </main>
     </div>
