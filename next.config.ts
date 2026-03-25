@@ -8,10 +8,15 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    qualities: [75, 100],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60,
     remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
       {
         protocol: 'http',
         hostname: 'localhost',

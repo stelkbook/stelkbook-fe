@@ -23,10 +23,8 @@ interface Book {
   mapel?: string;
   penerbit?: string;
   penulis?: string;
-  sekolah?: string;
   average_rating?: number;
   total_ratings?: number;
-  tags?: string[] | string;
 }
 
 function PageContent() {
@@ -82,15 +80,7 @@ function PageContent() {
       const matchesSubject = activeFilters.mapel.length === 0 || (book.mapel && activeFilters.mapel.includes(book.mapel));
       const matchesPublisher = activeFilters.penerbit.length === 0 || (book.penerbit && activeFilters.penerbit.includes(book.penerbit));
       const matchesAuthor = activeFilters.penulis.length === 0 || (book.penulis && activeFilters.penulis.includes(book.penulis));
-      
-      // Tag matching
-      const bookTags = Array.isArray(book.tags) 
-        ? book.tags 
-        : (typeof book.tags === 'string' ? book.tags.split(',').map((t: string) => t.trim()) : []);
-      const matchesTags = !activeFilters.tags || activeFilters.tags.length === 0 || 
-        activeFilters.tags.some(tag => bookTags.includes(tag));
-
-      return matchesClass && matchesSubject && matchesPublisher && matchesAuthor && matchesTags;
+      return matchesClass && matchesSubject && matchesPublisher && matchesAuthor;
     });
 
     const processedBooks = filteredBooks.map((book: any) => {
@@ -108,10 +98,8 @@ function PageContent() {
         mapel: book.mapel,
         penerbit: book.penerbit,
         penulis: book.penulis,
-        sekolah: book.sekolah,
         average_rating: book.average_rating,
-        total_ratings: book.total_ratings,
-        tags: book.tags
+        total_ratings: book.total_ratings
       };
     });
 
@@ -119,10 +107,6 @@ function PageContent() {
       processedBooks.sort((a: Book, b: Book) => a.judul.localeCompare(b.judul));
     } else if (sortOption === 'desc') {
       processedBooks.sort((a: Book, b: Book) => b.judul.localeCompare(a.judul));
-    } else if (sortOption === 'rating-high') {
-      processedBooks.sort((a: Book, b: Book) => (b.average_rating || 0) - (a.average_rating || 0));
-    } else if (sortOption === 'rating-low') {
-      processedBooks.sort((a: Book, b: Book) => (a.average_rating || 0) - (b.average_rating || 0));
     }
 
     setDisplayBooks(processedBooks);

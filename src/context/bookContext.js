@@ -46,6 +46,7 @@ export const BookProvider = ({ children }) => {
     const [guruPagination, setGuruPagination] = useState(paginationInitialState);
     const [rekapKunjunganBooks, setRekapKunjunganBooks] = useState([]);
     const [kunjunganBooks, setKunjunganBooks] = useState([]);
+    const [pendingUploads, setPendingUploads] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [pagination, setPagination] = useState({
@@ -53,6 +54,54 @@ export const BookProvider = ({ children }) => {
         lastPage: 1,
         total: 0
     });
+
+    const fetchPendingUploads = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get('/pending-book-uploads');
+            if (response.data.success) {
+                setPendingUploads(response.data.data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch pending uploads:', err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const approveBookUpload = async (id, formData) => {
+        setLoading(true);
+        try {
+            const response = await axios.post(`/approve-book-upload/${id}`, formData);
+            if (response.data.success) {
+                setPendingUploads(prev => prev.filter(item => item.id !== id));
+                // Refresh books list or add to state
+                fetchBooks();
+                return response.data;
+            }
+        } catch (err) {
+            console.error('Failed to approve book upload:', err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const declineBookUpload = async (id) => {
+        setLoading(true);
+        try {
+            const response = await axios.post(`/decline-book-upload/${id}`);
+            if (response.data.success) {
+                setPendingUploads(prev => prev.filter(item => item.id !== id));
+                return response.data;
+            }
+        } catch (err) {
+            console.error('Failed to decline book upload:', err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Fungsi untuk mengambil semua buku
     const fetchBooks = useCallback(async (page = 1) => {
@@ -759,10 +808,10 @@ export const BookProvider = ({ children }) => {
         }
     },[])
 
-    const fetchBookById = useCallback(async (id, signal) => {
+    const fetchBookById = useCallback(async (id) => {
         setLoading(true);
         try {
-            const response = await axios.get(`/books/${id}`, { signal });
+            const response = await axios.get(`/books/${id}`);
             const data = response.data;
             return {
                 ...data,
@@ -771,7 +820,7 @@ export const BookProvider = ({ children }) => {
                 tahun: data.tahun_terbit || data.tahun,
             };
         } catch (err) {
-            if (err.name !== 'CanceledError') setError(err.message);
+            setError(err.message);
         } finally {
             setLoading(false);
         }
@@ -784,10 +833,10 @@ export const BookProvider = ({ children }) => {
     
 
     // Fungsi untuk mengambil buku siswa berdasarkan ID
-    const fetchSiswaBookById = async (id, signal) => {
+    const fetchSiswaBookById = async (id) => {
         setLoading(true);
         try {
-            const response = await axios.get(`/books/siswa/${id}`, { signal });
+            const response = await axios.get(`/books/siswa/${id}`);
             return response.data;
         } catch (err) {
             setError(err.message);
@@ -797,10 +846,10 @@ export const BookProvider = ({ children }) => {
     };
 
     // Fungsi untuk mengambil buku guru berdasarkan ID
-    const fetchGuruBookById = useCallback(async (id, signal) => {
+    const fetchGuruBookById = useCallback(async (id) => {
         setLoading(true);
         try {
-            const response = await axios.get(`/books/guru/${id}`, { signal });
+            const response = await axios.get(`/books/guru/${id}`);
             return response.data;
         } catch (err) {
             setError(err.message);
@@ -810,17 +859,17 @@ export const BookProvider = ({ children }) => {
     },[])
 
     // Fungsi untuk mengambil buku perpus berdasarkan ID
-    const fetchPerpusBookById = useCallback(async (id, signal) => {
+    const fetchPerpusBookById = useCallback(async (id) => {
         setLoading(true);
         try {
-            const response = await axios.get(`/books-perpus/${id}`, { signal });
+            const response = await axios.get(`/books-perpus/${id}`);
             return response.data;
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
-    },[])
+    });
 
     // Tambahkan fungsi refreshNonAkademikBooks
 const refreshNonAkademikBooks = useCallback(async () => {
@@ -841,148 +890,148 @@ const refreshNonAkademikBooks = useCallback(async () => {
     }
 }, []);
 
-const fetchKelas1BookById = useCallback(async (id, signal) => {
+const fetchKelas1BookById = useCallback(async (id) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-1/${id}`, { signal });
+        const response = await axios.get(`/books-kelas-1/${id}`);
         return response.data;
     } catch (err) {
-        if (err.name !== 'CanceledError') setError(err.message);
+        setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas2BookById = useCallback(async (id, signal) => {
+const fetchKelas2BookById = useCallback(async (id) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-2/${id}`, { signal });
+        const response = await axios.get(`/books-kelas-2/${id}`);
         return response.data;
     } catch (err) {
-        if (err.name !== 'CanceledError') setError(err.message);
+        setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
 
-const fetchKelas3BookById = useCallback(async (id, signal) => {
+const fetchKelas3BookById = useCallback(async (id) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-3/${id}`, { signal });
+        const response = await axios.get(`/books-kelas-3/${id}`);
         return response.data;
     } catch (err) {
-        if (err.name !== 'CanceledError') setError(err.message);
+        setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas4BookById = useCallback(async (id, signal) => {
+const fetchKelas4BookById = useCallback(async (id) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-4/${id}`, { signal });
+        const response = await axios.get(`/books-kelas-4/${id}`);
         return response.data;
     } catch (err) {
-        if (err.name !== 'CanceledError') setError(err.message);
+        setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas5BookById = useCallback(async (id, signal) => {
+const fetchKelas5BookById = useCallback(async (id) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-5/${id}`, { signal });
+        const response = await axios.get(`/books-kelas-5/${id}`);
         return response.data;
     } catch (err) {
-        if (err.name !== 'CanceledError') setError(err.message);
+        setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas6BookById = useCallback(async (id, signal) => {
+const fetchKelas6BookById = useCallback(async (id) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-6/${id}`, { signal });
+        const response = await axios.get(`/books-kelas-6/${id}`);
         return response.data;
     } catch (err) {
-        if (err.name !== 'CanceledError') setError(err.message);
+        setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas7BookById = useCallback(async (id, signal) => {
+const fetchKelas7BookById = useCallback(async (id) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-7/${id}`, { signal });
+        const response = await axios.get(`/books-kelas-7/${id}`);
         return response.data;
     } catch (err) {
-        if (err.name !== 'CanceledError') setError(err.message);
+        setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas8BookById = useCallback(async (id, signal) => {
+const fetchKelas8BookById = useCallback(async (id) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-8/${id}`, { signal });
+        const response = await axios.get(`/books-kelas-8/${id}`);
         return response.data;
     } catch (err) {
-        if (err.name !== 'CanceledError') setError(err.message);
+        setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas9BookById = useCallback(async (id, signal) => {
+const fetchKelas9BookById = useCallback(async (id) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-9/${id}`, { signal });
+        const response = await axios.get(`/books-kelas-9/${id}`);
         return response.data;
     } catch (err) {
-        if (err.name !== 'CanceledError') setError(err.message);
+        setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas10BookById = useCallback(async (id, signal) => {
+const fetchKelas10BookById = useCallback(async (id) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-10/${id}`, { signal });
+        const response = await axios.get(`/books-kelas-10/${id}`);
         return response.data;
     } catch (err) {
-        if (err.name !== 'CanceledError') setError(err.message);
+        setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas11BookById = useCallback(async (id, signal) => {
+const fetchKelas11BookById = useCallback(async (id) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-11/${id}`, { signal });
+        const response = await axios.get(`/books-kelas-11/${id}`);
         return response.data;
     } catch (err) {
-        if (err.name !== 'CanceledError') setError(err.message);
+        setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
-const fetchKelas12BookById = useCallback(async (id, signal) => {
+const fetchKelas12BookById = useCallback(async (id) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books-kelas-12/${id}`, { signal });
+        const response = await axios.get(`/books-kelas-12/${id}`);
         return response.data;
     } catch (err) {
-        if (err.name !== 'CanceledError') setError(err.message);
+        setError(err.message);
     } finally {
         setLoading(false);
     }
 },[]);
 
 // Perbaiki fetchNonAkademikBookById
-const fetchNonAkademikBookById = useCallback(async (id, signal) => {
+const fetchNonAkademikBookById = useCallback(async (id) => {
     setLoading(true);
     try {
-        const response = await axios.get(`/books/non-akademik/${id}`, { signal });
+        const response = await axios.get(`/books/non-akademik/${id}`);
         return response.data;
     } catch (err) {
-        if (err.name !== 'CanceledError') setError(err.message);
+        setError(err.message);
     } finally {
         setLoading(false);
     }
@@ -994,11 +1043,22 @@ const fetchNonAkademikBookById = useCallback(async (id, signal) => {
     const addBook = async (bookData) => {
         setLoading(true);
         try {
-            const response = await axios.post('/books', bookData, {
+            // Check if this is a pending upload (from Guru)
+            const isPending = bookData.get('is_pending') === '1';
+            const endpoint = isPending ? '/pending-book-uploads' : '/books';
+
+            const response = await axios.post(endpoint, bookData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
+
+            if (isPending) {
+                // If pending, we don't necessarily want to add it to the active books list yet
+                // But we might want to refresh pending uploads if the user is a librarian
+                return response.data;
+            }
+
             // Update books state with the new book data (structure based on backend response: { data: { ... } })
             setBooks((prevBooks) => [response.data.book, ...prevBooks]);
             return response.data;
@@ -1549,6 +1609,10 @@ const deleteBookKelas12 = async (id) => {
                 nonAkademikPagination,
                 guruPagination,
                 pagination,
+                pendingUploads,
+                fetchPendingUploads,
+                approveBookUpload,
+                declineBookUpload,
                 loading,
                 error,
                 fetchBooks,

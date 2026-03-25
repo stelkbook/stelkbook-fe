@@ -23,10 +23,9 @@ interface Book {
 interface BookCardProps {
   book: Book;
   onClick?: () => void;
-  hideCategory?: boolean;
 }
 
-const BookCard = ({ book, onClick, hideCategory = false }: BookCardProps) => {
+const BookCard = ({ book, onClick }: BookCardProps) => {
   const router = useRouter();
 
   const handleClick = () => {
@@ -43,8 +42,6 @@ const BookCard = ({ book, onClick, hideCategory = false }: BookCardProps) => {
       handleClick();
     }
   };
-
-  const avgRating = book.average_rating ? Number(book.average_rating) : 0;
 
   return (
     <div
@@ -66,35 +63,22 @@ const BookCard = ({ book, onClick, hideCategory = false }: BookCardProps) => {
             target.src = '/assets/default-cover.png';
           }}
         />
-        
-        {/* New Rating Badge (Top-Right) */}
-        {avgRating > 0 && (
-          <div className="absolute top-0 right-0 m-2 bg-black/80 backdrop-blur-sm rounded-lg p-1.5 flex flex-col items-center justify-center min-w-[40px] shadow-sm z-10">
-            <Star 
-              size={16} 
-              fill="#FACC15" 
-              className="text-yellow-400 mb-0.5"
-            />
-            <span className="text-white text-xs font-medium">
-              {avgRating.toFixed(1)}
-            </span>
+        {/* Rating Badge Overlay */}
+        {(book.average_rating !== undefined && book.average_rating !== null) && (
+          <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-md flex items-center gap-1 z-10">
+            <Star size={12} className="fill-yellow-400 text-yellow-400" />
+            <span className="text-[10px] font-bold">{Number(book.average_rating).toFixed(1)}</span>
           </div>
         )}
       </div>
-      
       <p className="mt-2 text-sm font-poppins font-semibold text-center line-clamp-2 group-hover:text-blue-600 transition-colors">
         {book.judul}
       </p>
-      
-      {!hideCategory && (
-        <>
-          {book.kategori && (
-            <p className="text-xs text-gray-500 mt-1">Kelas {book.kategori}</p>
-          )}
-          {book.sekolah && (
-            <p className="text-xs text-gray-500">{book.sekolah}</p>
-          )}
-        </>
+      {book.kategori && (
+        <p className="text-xs text-gray-500 mt-1">Kelas {book.kategori}</p>
+      )}
+      {book.sekolah && (
+        <p className="text-xs text-gray-500">{book.sekolah}</p>
       )}
     </div>
   );

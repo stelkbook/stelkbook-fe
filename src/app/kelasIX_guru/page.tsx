@@ -23,6 +23,8 @@ interface Book {
   penerbit?: string;
   penulis?: string;
   sekolah?: string;
+  average_rating?: number;
+  total_ratings?: number;
 }
 
 function Kelas9GuruContent() {
@@ -112,7 +114,9 @@ function Kelas9GuruContent() {
           mapel: book.mapel,
           penerbit: book.penerbit,
           penulis: book.penulis,
-          sekolah: book.sekolah
+          sekolah: book.sekolah,
+          average_rating: book.average_rating,
+          total_ratings: book.total_ratings
         };
       });
 

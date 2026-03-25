@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronDown, X, Filter, Check, Tag, Sparkles, Search } from 'lucide-react';
+import { generateAutomaticTags, getAllPossibleTags } from '@/utils/taggingSystem';
 
 interface Book {
   id?: number;
@@ -55,12 +56,39 @@ const FilterCheckbox: React.FC<FilterCheckboxProps> = ({ books, onFilterChange, 
   };
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Get all possible tags for suggestions
+  const allPossibleTags = useMemo(() => getAllPossibleTags(), []);
+
+  // Filter suggestions based on input
+  const tagSuggestions = useMemo(() => {
+    if (!tagInput.trim()) return [];
+    const input = tagInput.toLowerCase();
+    return allPossibleTags
+      .filter(tag => tag.toLowerCase().includes(input) && !selectedFilters.tags?.includes(tag))
+      .slice(0, 5);
+  }, [tagInput, allPossibleTags, selectedFilters.tags]);
+
   // Extract unique options with counts
   const options = useMemo(() => {
     const extractOptions = (key: keyof Book, fallbackKey?: keyof Book) => {
       const counts: Record<string, number> = {};
       books.forEach(book => {
         let value = book[key];
+        
+        // Special logic for tags: include automatic tags if isSiswa is true
+        if (key === 'tags' && isSiswa) {
+          const autoTags = generateAutomaticTags(book.judul || '', book.deskripsi || '');
+          const existingTags = Array.isArray(value) 
+            ? value 
+            : (typeof value === 'string' ? value.split(',').map(t => t.trim()) : []);
+          
+          // Combine existing and auto tags, remove duplicates
+          const combinedTags = Array.from(new Set([...existingTags, ...autoTags]));
+          combinedTags.forEach(tag => {
+            if (tag) counts[tag] = (counts[tag] || 0) + 1;
+          });
+          return; // Skip standard processing for tags if isSiswa
+        }
         
         // Fallback logic for 'kelas' using 'kategori' if 'kelas' is missing
         if (!value && fallbackKey) {
@@ -96,7 +124,7 @@ const FilterCheckbox: React.FC<FilterCheckboxProps> = ({ books, onFilterChange, 
       kategori: extractOptions('kategori'),
       tags: extractOptions('tags')
     };
-  }, [books]);
+  }, [books, isSiswa]);
 
   // Handle outside click
   useEffect(() => {
@@ -220,10 +248,34 @@ const FilterCheckbox: React.FC<FilterCheckboxProps> = ({ books, onFilterChange, 
                     type="text"
                     placeholder="Tambah Tag Baru"
                     value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
+                    onChange={(e) => {
+                      setTagInput(e.target.value);
+                      setShowTagSuggestions(true);
+                    }}
+                    onFocus={() => setShowTagSuggestions(true)}
                     onKeyDown={handleTagKeyDown}
                     className="w-full pl-9 pr-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/10 focus:border-red-500 transition-all placeholder:text-gray-400 bg-gray-50/30 focus:bg-white"
                   />
+                  
+                  {/* Tag Suggestions Dropdown */}
+                  {showTagSuggestions && tagSuggestions.length > 0 && (
+                    <div className="absolute z-[60] left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                      {tagSuggestions.map(suggestion => (
+                        <button
+                          key={suggestion}
+                          onClick={() => {
+                            toggleFilter('tags', suggestion);
+                            setTagInput('');
+                            setShowTagSuggestions(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-xs hover:bg-red-50 text-gray-700 hover:text-red-700 font-medium transition-colors flex items-center justify-between"
+                        >
+                          {suggestion}
+                          <Sparkles size={10} className="text-amber-400" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 
                 {/* Selected Tags */}
@@ -248,8 +300,9 @@ const FilterCheckbox: React.FC<FilterCheckboxProps> = ({ books, onFilterChange, 
                   <div className="mt-2">
                     <div className="flex items-center gap-2 mb-2">
                       <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">
-                        Tag Terpopuler
+                        {isSiswa ? 'Tag yang Disarankan' : 'Tag Terpopuler'}
                       </p>
+                      {isSiswa && <Sparkles size={10} className="text-amber-400 animate-pulse" />}
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {items.slice(0, 15).map(([value, count]) => (

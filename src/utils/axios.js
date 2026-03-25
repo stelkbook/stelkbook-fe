@@ -1,38 +1,27 @@
 import axios from 'axios';
 
-const fallbackBaseURL = 'http://127.0.0.1:8000/api';
-const baseURL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (process.env.NEXT_PUBLIC_BACKEND_URL
-    ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/api`
-    : undefined) ||
-  fallbackBaseURL;
+const baseURL = process.env.NEXT_PUBLIC_API_URL || 
+  (process.env.NEXT_PUBLIC_BACKEND_URL ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/api` : undefined);
+
+if (!baseURL && typeof window !== 'undefined') {
+  console.error('API URL is not defined. Please check NEXT_PUBLIC_API_URL or NEXT_PUBLIC_BACKEND_URL environment variables.');
+}
 
 const api = axios.create({
-  baseURL,
-  headers: {
-    Accept: 'application/json',
-  },
-});
-
-api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    baseURL: baseURL,
+    headers: {
+        'Accept': 'application/json',
     }
-  }
-  return config;
-});
-
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const status = error?.response?.status;
-    const message = error?.response?.data?.message || error.message;
-    console.error(`[API ERROR] ${status || 'network'}: ${message}`);
-    return Promise.reject(error);
-  }
-);
+    // baseURL:"http://192.168.91.145:8080/api"
+})
+api.interceptors.request.use((config) => {
+    if (typeof window !== 'undefined') {
+        const token = localStorage.getItem("auth_token");
+        if (token && !token.startsWith('demo:')) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+    }
+    return config;
+})
 
 export default api;

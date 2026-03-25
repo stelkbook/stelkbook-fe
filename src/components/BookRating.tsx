@@ -2,16 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import api from '@/utils/axios';
-import { Star, Trash2 } from 'lucide-react';
+import { Star } from 'lucide-react';
 
 interface BookRatingProps {
   bookId: number;
-  initialAverageRating?: number;
-  initialTotalRatings?: number;
+  initialAverageRating?: number | string | null;
+  initialTotalRatings?: number | string | null;
   isReadOnly?: boolean;
   variant?: 'default' | 'compact';
   className?: string;
 }
+
+const toFiniteNumber = (value: unknown, fallback = 0) => {
+  const n = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
+  return Number.isFinite(n) ? n : fallback;
+};
 
 const BookRating: React.FC<BookRatingProps> = ({
   bookId,
@@ -24,8 +29,8 @@ const BookRating: React.FC<BookRatingProps> = ({
   const [rating, setRating] = useState<number>(0);
   const [review, setReview] = useState<string>('');
   const [hoverRating, setHoverRating] = useState<number>(0);
-  const [averageRating, setAverageRating] = useState<number>(initialAverageRating);
-  const [totalRatings, setTotalRatings] = useState<number>(initialTotalRatings);
+  const [averageRating, setAverageRating] = useState<number>(toFiniteNumber(initialAverageRating, 0));
+  const [totalRatings, setTotalRatings] = useState<number>(toFiniteNumber(initialTotalRatings, 0));
   const [loading, setLoading] = useState<boolean>(false);
   const [userRatingLoading, setUserRatingLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,16 +38,18 @@ const BookRating: React.FC<BookRatingProps> = ({
   const isCompact = variant === 'compact';
 
   useEffect(() => {
-    setAverageRating(initialAverageRating);
-    setTotalRatings(initialTotalRatings);
+    // Update local state if props change (e.g. from parent re-fetch)
+    setAverageRating(toFiniteNumber(initialAverageRating, 0));
+    setTotalRatings(toFiniteNumber(initialTotalRatings, 0));
   }, [initialAverageRating, initialTotalRatings]);
 
   useEffect(() => {
+    // Fetch user's existing rating
     const fetchUserRating = async () => {
       try {
         const response = await api.get(`/book-ratings/${bookId}/user`);
         if (response.data.rating) {
-          setRating(response.data.rating);
+          setRating(toFiniteNumber(response.data.rating, 0));
         }
         if (response.data.review) {
           setReview(response.data.review);
@@ -77,10 +84,10 @@ const BookRating: React.FC<BookRatingProps> = ({
       if (response.data.success) {
         setRating(value);
         if (response.data.average_rating !== undefined) {
-            setAverageRating(response.data.average_rating);
+            setAverageRating(toFiniteNumber(response.data.average_rating, averageRating));
         }
         if (response.data.total_ratings !== undefined) {
-            setTotalRatings(response.data.total_ratings);
+            setTotalRatings(toFiniteNumber(response.data.total_ratings, totalRatings));
         }
       }
     } catch (err: any) {
@@ -99,51 +106,17 @@ const BookRating: React.FC<BookRatingProps> = ({
     await handleRate(rating);
   };
 
-  const handleDeleteRating = async () => {
-    if (isReadOnly || loading) return;
-
-    if (!confirm('Apakah Anda yakin ingin menghapus penilaian Anda?')) {
-        return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-        const response = await api.delete(`/book-ratings/${bookId}`);
-
-        if (response.data.success) {
-            setRating(0);
-            setReview('');
-            if (response.data.average_rating !== undefined) {
-                setAverageRating(response.data.average_rating);
-            }
-            if (response.data.total_ratings !== undefined) {
-                setTotalRatings(response.data.total_ratings);
-            }
-        }
-    } catch (err: any) {
-        console.error('Failed to delete rating', err);
-        setError(err.response?.data?.message || 'Gagal menghapus penilaian.');
-    } finally {
-        setLoading(false);
-    }
-  };
-
   return (
     <div className={`flex flex-col items-start ${isCompact ? 'gap-2 p-0 bg-transparent border-none shadow-none' : 'gap-4 p-6 bg-white rounded-xl shadow-md border border-gray-100'} transition-all ${!isCompact ? 'hover:shadow-lg' : ''} ${className}`}>
       <div className={`flex items-center ${isCompact ? 'gap-3' : 'gap-4'} w-full`}>
         <div className={`flex flex-col items-center justify-center ${isCompact ? 'bg-yellow-50/50 p-1.5 min-w-[50px]' : 'bg-yellow-50 p-3 min-w-[80px]'} rounded-lg`}>
-            <span className={`${isCompact ? 'text-lg' : 'text-3xl'} font-bold text-yellow-600`}>{Number(averageRating).toFixed(1)}</span>
+            <span className={`${isCompact ? 'text-lg' : 'text-3xl'} font-bold text-yellow-600`}>{toFiniteNumber(averageRating, 0).toFixed(1)}</span>
             <div className="flex text-yellow-500">
-                {Array.from({ length: 5 }, (_, i) => (
-                  <Star 
-                    key={i} 
-                    size={isCompact ? 8 : 12} 
-                    fill={i < Math.round(averageRating) ? "currentColor" : "none"} 
-                    className={i < Math.round(averageRating) ? "" : "text-gray-300"}
-                  />
-                ))}
+                <Star size={isCompact ? 8 : 12} fill="currentColor" />
+                <Star size={isCompact ? 8 : 12} fill="currentColor" />
+                <Star size={isCompact ? 8 : 12} fill="currentColor" />
+                <Star size={isCompact ? 8 : 12} fill="currentColor" />
+                <Star size={isCompact ? 8 : 12} fill="currentColor" />
             </div>
         </div>
         
@@ -168,7 +141,7 @@ const BookRating: React.FC<BookRatingProps> = ({
             <button
                 key={star}
                 type="button"
-                onClick={() => !isReadOnly && !loading && handleRate(star)}
+                onClick={() => !isReadOnly && !loading && setRating(star)}
                 onMouseEnter={() => !isReadOnly && !loading && setHoverRating(star)}
                 onMouseLeave={() => !isReadOnly && !loading && setHoverRating(0)}
                 className={`p-1 focus:outline-none transition-transform duration-200 ${
@@ -199,25 +172,13 @@ const BookRating: React.FC<BookRatingProps> = ({
                     rows={isCompact ? 2 : 3}
                     disabled={loading}
                 />
-                <div className="flex gap-2 mt-2">
-                    <button
-                        onClick={handleSubmitReview}
-                        disabled={loading || rating === 0}
-                        className={`flex-grow ${isCompact ? 'py-1.5' : 'py-2'} bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm`}
-                    >
-                        {loading ? 'Mengirim...' : 'Kirim Penilaian'}
-                    </button>
-                    {rating > 0 && (
-                        <button
-                            onClick={handleDeleteRating}
-                            disabled={loading}
-                            className={`${isCompact ? 'py-1.5 px-2' : 'py-2 px-3'} bg-red-100 text-red-600 font-semibold rounded-lg hover:bg-red-200 disabled:bg-gray-100 disabled:text-gray-400 transition-colors text-sm flex items-center justify-center`}
-                            title="Hapus Penilaian"
-                        >
-                            <Trash2 size={isCompact ? 14 : 18} />
-                        </button>
-                    )}
-                </div>
+                <button
+                    onClick={handleSubmitReview}
+                    disabled={loading || rating === 0}
+                    className={`${isCompact ? 'mt-1 py-1.5' : 'mt-2 py-2'} w-full bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm`}
+                >
+                    {loading ? 'Mengirim...' : 'Kirim Penilaian & Ulasan'}
+                </button>
             </div>
         )}
         

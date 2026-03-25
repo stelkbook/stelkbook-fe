@@ -8,11 +8,10 @@ import useAuthMiddleware from '@/hooks/auth';
 import Pagination from '@/components/Pagination';
 import SortFilter, { SortOption } from '@/components/SortFilter';
 import FilterCheckbox, { FilterState } from '@/components/FilterCheckbox';
+import BookCard from '@/components/BookCard';
 import { getStorageUrl } from '@/helpers/storage';
 import TopBooks from '@/components/TopBooks';
 
-
-import BookCard from '@/components/BookCard';
 
 interface Book {
   id: number;
@@ -153,11 +152,10 @@ function PageContent() {
           </div>
         </div>
 
-        {/* Books Section */}
         <div className="flex-grow">
           <TopBooks category="VI" />
           {displayBooks.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 justify-items-center">
               {displayBooks.map((book) => (
                 <BookCard key={book.id} book={book} />
               ))}

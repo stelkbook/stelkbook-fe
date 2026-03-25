@@ -23,6 +23,8 @@ interface Book {
   penerbit?: string;
   penulis?: string;
   sekolah?: string;
+  average_rating?: number;
+  total_ratings?: number;
 }
 
 function GuruLainnyaContent() {
@@ -111,7 +113,9 @@ function GuruLainnyaContent() {
           mapel: book.mapel,
           penerbit: book.penerbit,
           penulis: book.penulis,
-          sekolah: book.sekolah
+          sekolah: book.sekolah,
+          average_rating: book.average_rating,
+          total_ratings: book.total_ratings
         };
       });
 
@@ -149,7 +153,7 @@ function GuruLainnyaContent() {
         <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex flex-col gap-1">
             <p className="text-xl font-semibold font-poppins">
-              Buku Non-Akademik
+              Buku Ajar Anda
             </p>
             <p className="text-sm text-gray-500">
               Menampilkan {displayBooks.length} buku
@@ -170,7 +174,7 @@ function GuruLainnyaContent() {
 
         <div className="flex-grow">
           {displayBooks.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 justify-items-center">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-6 justify-items-center">
               {displayBooks.map((book) => (
                 <BookCard 
                   key={book.id} 

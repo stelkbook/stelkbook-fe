@@ -7,11 +7,6 @@ export const getStorageUrl = (path?: string | null): string => {
   // sudah full url
   if (path.startsWith("http")) return path;
 
-  // Local assets (e.g. from public folder)
-  if (path.startsWith("/assets/") || path.startsWith("assets/")) {
-    return path.startsWith("/") ? path : `/${path}`;
-  }
-
   // Laravel local storage
   if (path.startsWith("/storage/")) {
     return `${BACKEND_URL}${path}`;

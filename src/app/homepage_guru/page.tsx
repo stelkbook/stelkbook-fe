@@ -5,13 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar_Guru';
 import { useBook } from '@/context/bookContext';
 import useAuthMiddleware from '@/hooks/auth';
-import useRoleGuard from '@/hooks/roleGuard';
 import { useAuth } from '@/context/authContext';
 import Pagination from '@/components/Pagination';
 import SortFilter, { SortOption } from '@/components/SortFilter';
 import FilterCheckbox, { FilterState } from '@/components/FilterCheckbox';
-import { getStorageUrl } from '@/helpers/storage';
 import BookCard from '@/components/BookCard';
+import { getStorageUrl } from '@/helpers/storage';
+import { Plus } from 'lucide-react';
+import UploadModal from './UploadBuku/UploadModal';
 
 
 interface Book {
@@ -31,13 +32,13 @@ interface Book {
 
 function GuruPageContent() {
   useAuthMiddleware();
-  useRoleGuard(['Guru']);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const { guruBooks, guruPagination, loading, fetchGuruBooks } = useBook();
   const [mappedBooks, setMappedBooks] = useState<Book[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [activeFilters, setActiveFilters] = useState<FilterState>({
     kelas: [],
     mapel: [],
@@ -46,16 +47,6 @@ function GuruPageContent() {
   });
 
   const currentPage = Number(searchParams.get('page')) || 1;
-
-  useEffect(() => {
-    router.prefetch('/homepage_guru/Buku');
-    router.prefetch('/kelasVII_guru');
-    router.prefetch('/kelasVIII_guru');
-    router.prefetch('/kelasIX_guru');
-    router.prefetch('/kelasX_guru');
-    router.prefetch('/kelasXI_guru');
-    router.prefetch('/kelasXII_guru');
-  }, [router]);
 
   useEffect(() => {
     if (user) {
@@ -152,12 +143,25 @@ function GuruPageContent() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
+      <UploadModal 
+        isOpen={isUploadModalOpen} 
+        onClose={() => setIsUploadModalOpen(false)} 
+      />
 
       <main className="pt-24 px-4 sm:px-8 flex-grow flex flex-col pb-8">
         <div className="mb-8 flex justify-between items-center">
-          <p className="text-xl font-semibold font-poppins">
-            Buku Ajar Anda
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-xl font-semibold font-poppins">
+              Buku Ajar Anda
+            </p>
+            <button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-all shadow-md shadow-red-200 active:scale-95 group"
+            >
+              <Plus size={16} className="group-hover:rotate-90 transition-transform duration-200" />
+              <span>Upload Buku</span>
+            </button>
+          </div>
           <div className="flex gap-3">
             <FilterCheckbox books={guruBooks} onFilterChange={setActiveFilters} />
             <SortFilter

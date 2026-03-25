@@ -4,7 +4,6 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar_Perpus";
-import BookCard from "@/components/BookCard";
 import { useBook } from "@/context/bookContext";
 import { getStorageUrl } from '@/helpers/storage';
 
@@ -17,8 +16,6 @@ interface Book {
   penulis?: string;
   kategori?: string;
   path?: string;
-  tags?: string;
-  average_rating?: number;
 }
 
 const SearchPageContent = () => {
@@ -58,8 +55,6 @@ const SearchPageContent = () => {
           penulis: book.penulis || "Unknown Author",
           kategori: book.kategori || "",
           path: `search_perpus/books?id=${book.id}`,
-          tags: book.tags || "",
-          average_rating: book.average_rating,
         };
       });
 
@@ -68,8 +63,7 @@ const SearchPageContent = () => {
           book.judul.toLowerCase().includes(query) ||
           (book.kategori && book.kategori.toLowerCase().includes(query)) ||
           (book.subject && book.subject.toLowerCase().includes(query)) ||
-          (book.penulis && book.penulis.toLowerCase().includes(query)) ||
-          (book.tags && book.tags.toLowerCase().includes(query))
+          (book.penulis && book.penulis.toLowerCase().includes(query))
       );
 
       setFilteredBooks(results);
@@ -109,9 +103,40 @@ const SearchPageContent = () => {
       </div>
 
       {filteredBooks.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredBooks.map((book) => (
-            <BookCard key={book.id} book={book} />
+            <div
+              key={book.id}
+              onClick={() => navigateToBook(book.id)}
+              className="bg-white hover:bg-gray-100 hover:scale-105 transition-transform duration-200 rounded-lg p-4 cursor-pointer flex flex-col items-center"
+            >
+              <div className="w-[150px] h-[200px] relative">
+                <Image
+                  src={book.cover}
+                  alt={book.judul}
+                  fill
+                  sizes="300px"
+                  className="rounded-md object-cover"
+                  priority={true}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/assets/default-cover.png";
+                  }}
+                />
+              </div>
+
+              <h3 className="mt-4 text-center text-sm font-semibold text-gray-800">
+                {book.judul}
+              </h3>
+              {book.penulis && (
+                <p className="text-xs text-gray-500">{book.penulis}</p>
+              )}
+              {book.kategori && (
+                <p className="text-xs text-gray-500 font-medium">
+                  {book.kategori}
+                </p>
+              )}
+            </div>
           ))}
         </div>
       ) : (

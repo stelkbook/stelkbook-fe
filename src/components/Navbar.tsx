@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
@@ -13,6 +13,7 @@ const Navbar: React.FC = () => {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleNavigation = (path: string) => {
     router.push(path);
@@ -73,7 +74,8 @@ const Navbar: React.FC = () => {
     <div className="flex-grow flex justify-center mx-2">
       <form
         onSubmit={handleSearchSubmit}
-        className="w-full max-w-[160px] sm:max-w-[200px] md:max-w-xs flex items-center bg-[#F5F5F5] rounded-full px-3 py-1 md:py-2 shadow-sm"
+        onClick={() => searchInputRef.current?.focus()}
+        className="w-full max-w-[160px] sm:max-w-[200px] md:max-w-xs flex items-center bg-[#F5F5F5] rounded-full px-3 py-1 md:py-2 shadow-sm border border-transparent focus-within:border-gray-400 focus-within:bg-white transition-colors"
       >
       <img
         src="/assets/icon/search.svg"
@@ -87,7 +89,8 @@ const Navbar: React.FC = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Cari"
-          className="flex-grow bg-transparent border-none text-sm md:text-base text-gray-600 placeholder-gray-400 focus:outline-none focus:ring-0"
+          ref={searchInputRef}
+          className="flex-grow bg-transparent border-none text-sm md:text-base text-gray-600 placeholder-gray-400 focus:outline-none focus:ring-0 caret-gray-700"
         />
       </form>
     </div>

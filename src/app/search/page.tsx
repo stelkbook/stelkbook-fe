@@ -2,11 +2,10 @@
 
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import Navbar from "@/components/Navbar";
-import BookCard from "@/components/BookCard";
 import { useBook } from "@/context/bookContext";
-import { getStorageUrl } from '@/helpers/storage';
+import { getStorageUrl } from "@/helpers/storage";
+import BookCard from "@/components/BookCard";
 
 
 interface Book {
@@ -17,8 +16,8 @@ interface Book {
   penulis?: string;
   kategori?: string;
   path?: string;
-  tags?: string;
   average_rating?: number;
+  total_ratings?: number;
 }
 
 const SearchPageContent = () => {
@@ -26,9 +25,17 @@ const SearchPageContent = () => {
   const searchParams = useSearchParams();
   const query = searchParams.get("q")?.toLowerCase() || "";
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // ✅ Tambah loading state
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { books, error, fetchBooks } = useBook();
+  const {
+    books,
+    perpusBooks,
+    nonAkademikBooks,
+    error,
+    fetchBooks,
+    fetchPerpusBooks,
+    fetchNonAkademikBooks,
+  } = useBook();
 
   const navigateToBook = (id: number) => {
     router.push(`search/books?id=${id}`);
@@ -37,17 +44,43 @@ const SearchPageContent = () => {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      await fetchBooks(); // Tunggu ambil data
-      setIsLoading(false);
+      try {
+        await Promise.all([
+          fetchBooks(),
+          fetchPerpusBooks?.(),
+          fetchNonAkademikBooks?.(),
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
     };
     loadData();
-  }, [fetchBooks]);
+  }, [fetchBooks, fetchPerpusBooks, fetchNonAkademikBooks]);
 
   useEffect(() => {
-    if (query && books.length > 0) {
-      const processedBooks = books.map((book: any) => {
-        const coverUrl = book.cover
-          ? getStorageUrl(book.cover)
+    const allCollections = [
+      ...(books || []),
+      ...(perpusBooks || []),
+      ...(nonAkademikBooks || []),
+    ];
+
+    const uniqueBooksMap = new Map<number, any>();
+    allCollections.forEach((book: any) => {
+      if (book && typeof book.id === "number" && !uniqueBooksMap.has(book.id)) {
+        uniqueBooksMap.set(book.id, book);
+      }
+    });
+
+    const allBooks = Array.from(uniqueBooksMap.values());
+
+    if (query && allBooks.length > 0) {
+      const processedBooks = allBooks.map((book: any) => {
+        const rawCover =
+          book.cover || book.cover_image || book.thumbnail || "";
+        const coverUrl = rawCover
+          ? rawCover.startsWith("http")
+            ? rawCover
+            : getStorageUrl(rawCover)
           : "/assets/default-cover.png";
 
         return {
@@ -58,25 +91,30 @@ const SearchPageContent = () => {
           penulis: book.penulis || "Unknown Author",
           kategori: book.kategori || "",
           path: `search/books?id=${book.id}`,
-          tags: book.tags || "",
-          average_rating: book.average_rating,
+          average_rating: book.average_rating ?? 0,
+          total_ratings: book.total_ratings ?? 0,
         };
       });
 
-      const results = processedBooks.filter(
-        (book: any) =>
-          book.judul.toLowerCase().includes(query) ||
-          (book.kategori && book.kategori.toLowerCase().includes(query)) ||
-          (book.subject && book.subject.toLowerCase().includes(query)) ||
-          (book.penulis && book.penulis.toLowerCase().includes(query)) ||
-          (book.tags && book.tags.toLowerCase().includes(query))
-      );
+      const results = processedBooks.filter((book: any) => {
+        const lowerTitle = book.judul.toLowerCase();
+        const lowerKategori = book.kategori?.toLowerCase() || "";
+        const lowerSubject = book.subject?.toLowerCase() || "";
+        const lowerPenulis = book.penulis?.toLowerCase() || "";
+
+        return (
+          lowerTitle.includes(query) ||
+          lowerKategori.includes(query) ||
+          lowerSubject.includes(query) ||
+          lowerPenulis.includes(query)
+        );
+      });
 
       setFilteredBooks(results);
     } else {
       setFilteredBooks([]);
     }
-  }, [query, books]);
+  }, [query, books, perpusBooks, nonAkademikBooks]);
 
   if (isLoading) {
     return (
@@ -108,10 +146,14 @@ const SearchPageContent = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 justify-items-center">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
         {filteredBooks.length > 0 ? (
           filteredBooks.map((book) => (
-            <BookCard key={book.id} book={book} />
+            <BookCard
+              key={book.id}
+              book={book}
+              onClick={() => navigateToBook(book.id)}
+            />
           ))
         ) : (
           <div className="col-span-full text-center py-20">

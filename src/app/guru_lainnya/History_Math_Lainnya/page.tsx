@@ -2,8 +2,8 @@
 
 import React from "react";
 import Image from "next/image";
-import Navbar from "@/components/Navbar";
-import PageFlipBook from "@/components/PageFlipBook2";
+import Navbar from "@/components/Navbar_Lainnya_Guru";
+import PageFlipBook from "../PageFlipBook2";
 
 function Page() {
   return (
@@ -77,8 +77,8 @@ function Page() {
           </div>
 
           {/* Flipbook */}
-          <div className="flex-grow">
-            <PageFlipBook pdfUrl="/assets/pdfs/MTK-OLM.pdf" align="start" />
+          <div className="flex-grow flex justify-center">
+            <PageFlipBook pdfUrl="/assets/pdfs/MTK-OLM.pdf" align="center" />
           </div>
         </div>
       </main>

@@ -189,7 +189,25 @@ function Page() {
       setShowWarning(true);
     } catch (e: any) {
       console.error("Registrasi gagal:", e);
-      const msg = e.response?.data?.message || "Registrasi gagal. Silakan coba lagi.";
+      let msg = "Registrasi gagal. Silakan coba lagi.";
+
+      if (e?.response?.data?.message) {
+        msg = e.response.data.message;
+      } else if (typeof e === 'object' && e !== null && !e.message && !e.response) {
+         // Handle validation errors object (e.g., { username: ["Taken"] })
+         const values = Object.values(e);
+         if (values.length > 0) {
+            const firstError = values[0];
+            if (Array.isArray(firstError) && firstError.length > 0) {
+               msg = firstError[0];
+            } else if (typeof firstError === 'string') {
+               msg = firstError;
+            }
+         }
+      } else if (e?.message) {
+        msg = e.message;
+      }
+      
       setErrorMessage(msg);
     } finally {
       setIsLoading(false); // ✅ Stop Spinner

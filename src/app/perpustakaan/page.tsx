@@ -207,7 +207,7 @@ export default function Home() {
   const loading = loadingUser || loadingPending || loadingRekap || bookLoading;
 
   const RekapKunjunganChart = useMemo(
-    () => dynamic(() => import('@/components/RekapKunjunganChart'), { ssr: false }),
+    () => dynamic(() => import('@/components/KunjunganChart'), { ssr: false }),
     []
   );
 

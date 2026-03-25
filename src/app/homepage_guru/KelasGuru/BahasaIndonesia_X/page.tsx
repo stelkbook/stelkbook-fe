@@ -40,7 +40,7 @@ function Page() {
                 </div>
 
         {/* Book and Flipbook Section */}
-        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
+        <div className="flex flex-col lg:flex-row gap-8 items-center">
           {/* Book Cover and Metadata */}
           <div className="flex flex-col items-center lg:items-start">
             {/* Book Cover */}
@@ -78,7 +78,7 @@ function Page() {
 
           {/* Flipbook */}
           <div className="flex-grow">
-            <PageFlipBook pdfUrl="/assets/pdfs/MTK-OLM.pdf" align="start" />
+            <PageFlipBook pdfUrl="/assets/pdfs/MTK-OLM.pdf" />
           </div>
         </div>
       </main>

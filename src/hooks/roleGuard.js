@@ -1,33 +1,39 @@
-'use client'
-import { useEffect } from 'react';
+'use client';
+
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { useAuth } from '@/context/authContext';
 
 export default function useRoleGuard(allowedRoles = []) {
   const router = useRouter();
   const { user, loading } = useAuth();
 
-  useEffect(() => {
-    if (loading) return;
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-    if (!token) {
-      router.push('/');
-      return;
-    }
-    if (!user) return;
+  // Convert to string to avoid infinite loops if an array literal is passed
+  const allowedRolesStr = JSON.stringify(allowedRoles);
 
-    const role = (user.role || '').toLowerCase();
-    const allowed = allowedRoles.map((r) => r.toLowerCase());
-    if (allowed.length && !allowed.includes(role)) {
-      if (role === 'admin') {
-        router.push('/admin');
-      } else if (role === 'perpus' || role === 'pengurusperpustakaan') {
-        router.push('/perpustakaan');
-      } else if (role === 'guru') {
-        router.push('/homepage_guru');
-      } else {
-        router.push('/homepage');
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.push('/');
+        return;
+      }
+
+      const roles = JSON.parse(allowedRolesStr);
+      const userRole = user.role;
+      const isAllowed = roles.includes(userRole);
+
+      if (!isAllowed) {
+        // Redirect logic based on what was observed in perpustakaan/page.tsx
+        if (userRole === 'Guru') {
+          router.push('/homepage_guru');
+        } else if (userRole === 'Siswa') {
+          router.push('/homepage');
+        } else if (['Admin', 'Perpus', 'PengurusPerpustakaan'].includes(userRole)) {
+          router.push('/admin_perpus');
+        } else {
+          router.push('/');
+        }
       }
     }
-  }, [user, loading, router, allowedRoles]);
+  }, [user, loading, router, allowedRolesStr]);
 }

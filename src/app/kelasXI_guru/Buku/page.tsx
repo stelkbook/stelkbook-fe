@@ -4,15 +4,10 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar_Lainnya_Guru"; // ✅ Navbar khusus Guru
-import dynamic from "next/dynamic";
+import PageFlipBook from "@/app/guru_lainnya/PageFlipBook2";
+import BookRating from "@/components/BookRating";
 import { useBook } from "@/context/bookContext";
 import { getStorageUrl } from '@/helpers/storage';
-import BookRating from "@/components/BookRating";
-
-const PageFlipBook = dynamic(() => import("@/components/PageFlipBook2"), {
-  ssr: false,
-  loading: () => <p className="text-gray-500">Memuat viewer...</p>
-});
 
 
 interface Book {
@@ -30,35 +25,26 @@ interface Book {
 }
 
 const BookContent: React.FC = () => {
-  const handleScrollToFlipBook = () => {
-    const flipBook = document.getElementById("flipbook");
-    flipBook?.scrollIntoView({ behavior: "smooth" });
-  };
-
   const searchParams = useSearchParams();
   const bookId = parseInt(searchParams.get("id") || "0", 10);
-  const { fetchKelas11BookById} = useBook(); // ✅ versi Guru
+  const { fetchKelas11BookById } = useBook(); // ✅ versi Guru
 
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const controller = new AbortController();
     const fetchData = async () => {
       try {
-        const data = await fetchKelas11BookById(bookId, controller.signal);
+        const data = await fetchKelas11BookById(bookId);
         setBook(data);
-      } catch (error: any) {
-        if (error.name !== 'CanceledError') {
-          console.error("Gagal memuat data buku:", error);
-        }
+      } catch (error) {
+        console.error("Gagal memuat data buku:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-    return () => controller.abort();
   }, [bookId, fetchKelas11BookById]);
 
   if (loading) {
@@ -88,13 +74,9 @@ const BookContent: React.FC = () => {
   };
 
   return (
-    <div className="h-screen p-8 bg-gray-50 overflow-y-auto">
+    <div className="min-h-screen bg-gray-50 overflow-y-auto pt-24 px-8 pb-8">
       {/* Navbar */}
-      <header className="flex justify-between items-center mb-4">
-        <div className="pt-12 px-8">
-          <Navbar />
-        </div>
-      </header>
+      <Navbar />
 
       {/* Breadcrumb */}
       <div className="mb-8 flex items-center">
@@ -118,7 +100,7 @@ const BookContent: React.FC = () => {
       </div>
 
       {/* Konten Buku */}
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
+      <div className="flex flex-col lg:flex-row gap-8 items-center">
         {/* Kiri */}
         <div className="flex flex-col items-center lg:items-start">
           <Image
@@ -150,23 +132,14 @@ const BookContent: React.FC = () => {
                 <strong>ISBN:</strong> {book.ISBN}
               </li>
             </ul>
-            
-            {/* Read Now Button (Mobile Only) */}
-            <button
-              onClick={handleScrollToFlipBook}
-              className="mt-6 w-full bg-green-500 text-white py-3 rounded-xl font-bold shadow-md hover:bg-green-600 transition-all lg:hidden flex items-center justify-center gap-2"
-            >
-              <span>📖</span> Baca Sekarang
-            </button>
-        
-{/* Book Rating Feature */}
-            <div className="mt-8 w-full max-w-md hidden lg:block origin-top-left lg:scale-90">
+
+            {/* Book Rating Feature */}
+            <div className="mt-8 w-full max-w-md">
               <BookRating 
                 bookId={book.id} 
                 initialAverageRating={book.average_rating || 0}
                 initialTotalRatings={book.total_ratings || 0}
-                variant="default"
-                isReadOnly={false} 
+                isReadOnly={true}
               />
             </div>
 
@@ -181,24 +154,13 @@ const BookContent: React.FC = () => {
         </div>
 
         {/* Kanan */}
-        <div id="flipbook" className="flex-grow w-full z-0 min-h-[500px] lg:min-h-[600px]">
+        <div className="flex-grow w-full flex justify-center items-center">
           {pdfUrl ? (
-            <PageFlipBook pdfUrl={pdfUrl} align="start" />
+            <PageFlipBook pdfUrl={pdfUrl} align="center" />
           ) : (
             <p className="text-gray-500">Memuat buku...</p>
           )}
-        
-
-            <div className="mt-8 w-full max-w-md lg:hidden">
-              <BookRating 
-                bookId={book.id} 
-                initialAverageRating={book.average_rating || 0}
-                initialTotalRatings={book.total_ratings || 0}
-                variant="default"
-                isReadOnly={false} 
-              />
-            </div>
-</div>
+        </div>
       </div>
     </div>
   );

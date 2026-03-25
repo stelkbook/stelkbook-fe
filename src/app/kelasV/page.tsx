@@ -8,11 +8,10 @@ import useAuthMiddleware from '@/hooks/auth';
 import Pagination from '@/components/Pagination';
 import SortFilter, { SortOption } from '@/components/SortFilter';
 import FilterCheckbox, { FilterState } from '@/components/FilterCheckbox';
+import BookCard from '@/components/BookCard';
 import { getStorageUrl } from '@/helpers/storage';
 import TopBooks from '@/components/TopBooks';
 
-
-import BookCard from '@/components/BookCard';
 
 interface Book {
   id: number;

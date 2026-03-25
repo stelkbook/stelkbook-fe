@@ -3,6 +3,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import BookCard from '@/components/BookCard';
 import { useBook } from '@/context/bookContext';
 import useAuthMiddleware from '@/hooks/auth';
 import Pagination from '@/components/Pagination';
@@ -10,7 +11,6 @@ import SortFilter, { SortOption } from '@/components/SortFilter';
 import FilterCheckbox, { FilterState } from '@/components/FilterCheckbox';
 import { getStorageUrl } from '@/helpers/storage';
 import TopBooks from '@/components/TopBooks';
-import BookCard from '@/components/BookCard';
 
 
 interface Book {

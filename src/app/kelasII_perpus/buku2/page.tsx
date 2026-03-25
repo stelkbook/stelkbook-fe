@@ -4,16 +4,10 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import WarningModalBuku from "./WarningModalKelas3";
-import dynamic from "next/dynamic";
+import PageFlipBook from "@/components/PageFlipBook2";
 import Navbar from "@/components/Navbar_Lainnya_Perpus";
 import { useBook } from "@/context/bookContext";
 import { getStorageUrl } from '@/helpers/storage';
-import BookRating from "@/components/BookRating";
-
-const PageFlipBook = dynamic(() => import("@/components/PageFlipBook2"), {
-  ssr: false,
-  loading: () => <p className="text-gray-500">Memuat viewer...</p>
-});
 
 
 interface Book {
@@ -26,16 +20,9 @@ interface Book {
   ISBN: string;
   isi: string;
   cover: string;
-  average_rating?: number;
-  total_ratings?: number;
 }
 
 const BookContent: React.FC = () => {
-  const handleScrollToFlipBook = () => {
-    const flipBook = document.getElementById("flipbook");
-    flipBook?.scrollIntoView({ behavior: "smooth" });
-  };
-
   const [showWarningModal, setShowWarningModal] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -46,22 +33,18 @@ const BookContent: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const controller = new AbortController();
     const fetchData = async () => {
       try {
-        const data = await fetchKelas2BookById(bookId, controller.signal);
+        const data = await fetchKelas2BookById(bookId);
         setBook(data);
-      } catch (error: any) {
-        if (error.name !== 'CanceledError') {
-          console.error("Error fetching book:", error);
-        }
+      } catch (error) {
+        console.error("Error fetching book:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-    return () => controller.abort();
   }, [bookId, fetchKelas2BookById, getBookPdfUrl]);
 
   const handleDeleteBook = async (id: number) => {
@@ -123,7 +106,7 @@ const BookContent: React.FC = () => {
       </div>
 
       {/* Konten Buku */}
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
+      <div className="flex flex-col lg:flex-row gap-8 items-center">
         {/* Kiri */}
         <div className="flex flex-col items-center lg:items-start">
           <Image
@@ -155,25 +138,6 @@ const BookContent: React.FC = () => {
                 <strong>ISBN:</strong> {book.ISBN}
               </li>
             </ul>
-            
-            {/* Read Now Button (Mobile Only) */}
-            <button
-              onClick={handleScrollToFlipBook}
-              className="mt-6 w-full bg-green-500 text-white py-3 rounded-xl font-bold shadow-md hover:bg-green-600 transition-all lg:hidden flex items-center justify-center gap-2"
-            >
-              <span>📖</span> Baca Sekarang
-            </button>
-        
-{/* Book Rating Feature */}
-            <div className="mt-8 w-full max-w-md hidden lg:block origin-top-left lg:scale-90">
-              <BookRating 
-                bookId={book.id} 
-                initialAverageRating={book.average_rating || 0}
-                initialTotalRatings={book.total_ratings || 0}
-                variant="default"
-                isReadOnly={false} 
-              />
-            </div>
           </div>
 
           {/* Tombol */}
@@ -213,24 +177,13 @@ const BookContent: React.FC = () => {
         </div>
 
         {/* Kanan */}
-        <div id="flipbook" className="flex-grow w-full z-0 min-h-[500px] lg:min-h-[600px]">
+        <div className="flex-grow overflow-x-auto w-full">
           {pdfUrl ? (
             <PageFlipBook pdfUrl={pdfUrl} align="start" />
           ) : (
             <p className="text-gray-500">Memuat buku...</p>
           )}
-        
-
-            <div className="mt-8 w-full max-w-md lg:hidden">
-              <BookRating 
-                bookId={book.id} 
-                initialAverageRating={book.average_rating || 0}
-                initialTotalRatings={book.total_ratings || 0}
-                variant="default"
-                isReadOnly={false} 
-              />
-            </div>
-</div>
+        </div>
       </div>
 
       {/* Modal */}

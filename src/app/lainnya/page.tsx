@@ -9,13 +9,16 @@ import { useAuth } from '@/context/authContext';
 import Pagination from '@/components/Pagination';
 import SortFilter, { SortOption } from '@/components/SortFilter';
 import FilterCheckbox, { FilterState } from '@/components/FilterCheckbox';
+import BookCard from '@/components/BookCard';
 import { getStorageUrl } from '@/helpers/storage';
+import { generateAutomaticTags } from '@/utils/taggingSystem';
 import TopBooks from '@/components/TopBooks';
 
 
 interface Book {
   id: number;
   judul: string;
+  deskripsi?: string;
   cover: string;
   path?: string;
   kategori?: string;
@@ -26,8 +29,6 @@ interface Book {
   average_rating?: number;
   total_ratings?: number;
 }
-
-import BookCard from '@/components/BookCard';
 
 function LainnyaContent() {
   useAuthMiddleware();
@@ -41,7 +42,8 @@ function LainnyaContent() {
     kelas: [],
     mapel: [],
     penerbit: [],
-    penulis: []
+    penulis: [],
+    tags: []
   });
 
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -75,13 +77,25 @@ function LainnyaContent() {
   useEffect(() => {
     if (!nonAkademikBooks) return;
 
-    const filteredBooks = nonAkademikBooks.filter((book: any) => {
+    const filteredBooks = (nonAkademikBooks || []).filter((book: any) => {
       const bookClass = book.kelas || book.kategori;
       const matchesClass = activeFilters.kelas.length === 0 || (bookClass && activeFilters.kelas.includes(bookClass));
       const matchesSubject = activeFilters.mapel.length === 0 || (book.mapel && activeFilters.mapel.includes(book.mapel));
       const matchesPublisher = activeFilters.penerbit.length === 0 || (book.penerbit && activeFilters.penerbit.includes(book.penerbit));
       const matchesAuthor = activeFilters.penulis.length === 0 || (book.penulis && activeFilters.penulis.includes(book.penulis));
-      return matchesClass && matchesSubject && matchesPublisher && matchesAuthor;
+      
+      // Tag matching logic (including automatic tags)
+      let matchesTags = true;
+      if (activeFilters.tags && activeFilters.tags.length > 0) {
+        const autoTags = generateAutomaticTags(book.judul || '', book.deskripsi || '');
+        const existingTags = Array.isArray(book.tags) 
+          ? book.tags 
+          : (typeof book.tags === 'string' ? book.tags.split(',').map((t: string) => t.trim()) : []);
+        const combinedTags = [...existingTags, ...autoTags];
+        matchesTags = activeFilters.tags.some(tag => combinedTags.includes(tag));
+      }
+      
+      return matchesClass && matchesSubject && matchesPublisher && matchesAuthor && matchesTags;
     });
 
     const processedBooks = filteredBooks.map((book: any) => {
@@ -134,7 +148,12 @@ function LainnyaContent() {
             Buku Non-Akademik
           </h1>
           <div className="flex gap-3">
-            <FilterCheckbox books={nonAkademikBooks} onFilterChange={setActiveFilters} hiddenFilters={['kelas']} />
+            <FilterCheckbox 
+              books={nonAkademikBooks || []} 
+              onFilterChange={setActiveFilters} 
+              hiddenFilters={['kelas']}
+              isSiswa={true}
+            />
             <SortFilter 
               currentSort={sortOption} 
               onSortChange={setSortOption} 

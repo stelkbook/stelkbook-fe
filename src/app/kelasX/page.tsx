@@ -3,18 +3,21 @@ import React, { useEffect, useState, Suspense } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import BookCard from '@/components/BookCard';
 import { useBook } from '@/context/bookContext';
 import useAuthMiddleware from '@/hooks/auth';
 import Pagination from '@/components/Pagination';
 import SortFilter, { SortOption } from '@/components/SortFilter';
 import FilterCheckbox, { FilterState } from '@/components/FilterCheckbox';
 import { getStorageUrl } from '@/helpers/storage';
+import { generateAutomaticTags } from '@/utils/taggingSystem';
 import TopBooks from '@/components/TopBooks';
 
 
 interface Book {
   id: number;
   judul: string;
+  deskripsi?: string;
   cover: string;
   path?: string;
   kategori?: string;
@@ -22,12 +25,9 @@ interface Book {
   mapel?: string;
   penerbit?: string;
   penulis?: string;
-  sekolah?: string;
   average_rating?: number;
   total_ratings?: number;
 }
-
-import BookCard from '@/components/BookCard';
 
 function PageContent() {
   useAuthMiddleware();
@@ -40,7 +40,8 @@ function PageContent() {
     kelas: [],
     mapel: [],
     penerbit: [],
-    penulis: []
+    penulis: [],
+    tags: []
   });
 
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -84,7 +85,19 @@ function PageContent() {
       const matchesSubject = activeFilters.mapel.length === 0 || (book.mapel && activeFilters.mapel.includes(book.mapel));
       const matchesPublisher = activeFilters.penerbit.length === 0 || (book.penerbit && activeFilters.penerbit.includes(book.penerbit));
       const matchesAuthor = activeFilters.penulis.length === 0 || (book.penulis && activeFilters.penulis.includes(book.penulis));
-      return matchesClass && matchesSubject && matchesPublisher && matchesAuthor;
+      
+      // Tag matching logic (including automatic tags)
+      let matchesTags = true;
+      if (activeFilters.tags && activeFilters.tags.length > 0) {
+        const autoTags = generateAutomaticTags(book.judul || '', book.deskripsi || '');
+        const existingTags = Array.isArray(book.tags) 
+          ? book.tags 
+          : (typeof book.tags === 'string' ? book.tags.split(',').map((t: string) => t.trim()) : []);
+        const combinedTags = [...existingTags, ...autoTags];
+        matchesTags = activeFilters.tags.some(tag => combinedTags.includes(tag));
+      }
+      
+      return matchesClass && matchesSubject && matchesPublisher && matchesAuthor && matchesTags;
     });
 
     const processedBooks = filteredBooks.map((book: any) => {
@@ -148,8 +161,9 @@ function PageContent() {
           </div>
           <div className="flex gap-3 w-full md:w-auto flex-wrap">
             <FilterCheckbox 
-              books={kelas10Books} 
+              books={kelas10Books || []} 
               onFilterChange={setActiveFilters} 
+              isSiswa={true}
             />
             <SortFilter 
               currentSort={sortOption} 
@@ -160,9 +174,7 @@ function PageContent() {
 
         {/* Books Section */}
         <div className="flex-grow">
-          {/* Top Books Section */}
           <TopBooks category="X" />
-
           {displayBooks.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 justify-items-center">
               {displayBooks.map((book) => (

@@ -4,10 +4,10 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar_Lainnya_Guru"; // ✅ Navbar khusus Guru
-import dynamic from "next/dynamic";
+import PageFlipBook from "@/components/PageFlipBook2";
+import BookRating from "@/components/BookRating";
 import { useBook } from "@/context/bookContext";
 import { getStorageUrl } from '@/helpers/storage';
-import BookRating from "@/components/BookRating";
 
 
 interface Book {
@@ -25,12 +25,6 @@ interface Book {
 }
 
 const BookContent: React.FC = () => {
-  const handleScrollToFlipBook = () => {
-    const flipBook = document.getElementById("flipbook");
-    flipBook?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const PageFlipBook = dynamic(() => import("@/components/PageFlipBook2"), { ssr: false });
   const searchParams = useSearchParams();
   const bookId = parseInt(searchParams.get("id") || "0", 10);
   const { fetchGuruBookById } = useBook(); // ✅ versi Guru
@@ -39,10 +33,9 @@ const BookContent: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const controller = new AbortController();
     const fetchData = async () => {
       try {
-        const data = await fetchGuruBookById(bookId, controller.signal);
+        const data = await fetchGuruBookById(bookId);
         setBook(data);
       } catch (error) {
         console.error("Gagal memuat data buku:", error);
@@ -52,9 +45,6 @@ const BookContent: React.FC = () => {
     };
 
     fetchData();
-    return () => {
-      controller.abort();
-    }
   }, [bookId, fetchGuruBookById]);
 
   if (loading) {
@@ -114,7 +104,7 @@ const BookContent: React.FC = () => {
       </div>
 
       {/* Konten Buku */}
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
+      <div className="flex flex-col lg:flex-row gap-8 items-center">
         {/* Kiri */}
         <div className="flex flex-col items-center lg:items-start">
           <Image
@@ -146,55 +136,30 @@ const BookContent: React.FC = () => {
                 <strong>ISBN:</strong> {book.ISBN}
               </li>
             </ul>
-            
-            {/* Read Now Button (Mobile Only) */}
-            <button
-              onClick={handleScrollToFlipBook}
-              className="mt-6 w-full bg-green-500 text-white py-3 rounded-xl font-bold shadow-md hover:bg-green-600 transition-all lg:hidden flex items-center justify-center gap-2"
-            >
-              <span>📖</span> Baca Sekarang
-            </button>
-        
-{/* Book Rating Feature */}
-            <div className="mt-8 w-full max-w-md hidden lg:block origin-top-left lg:scale-90">
-              <BookRating 
-                bookId={book.id} 
-                initialAverageRating={book.average_rating || 0}
-                initialTotalRatings={book.total_ratings || 0}
-                variant="default"
-                isReadOnly={false} 
-              />
-            </div>
 
-            {/* ✅ Tombol Unduh tetap ada */}
             <button
               onClick={handleDownload}
-              className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+              className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 mb-6"
             >
               Unduh Buku
             </button>
+
+            <BookRating 
+              bookId={book.id}
+              initialAverageRating={book.average_rating}
+              initialTotalRatings={book.total_ratings}
+            />
           </div>
         </div>
 
         {/* Kanan */}
-        <div id="flipbook" className="flex-grow w-full z-0 min-h-[500px] lg:min-h-[600px]">
+        <div className="flex-grow overflow-x-auto w-full">
           {pdfUrl ? (
-            <PageFlipBook pdfUrl={pdfUrl} align="start" />
+            <PageFlipBook pdfUrl={pdfUrl} />
           ) : (
             <p className="text-gray-500">Memuat buku...</p>
           )}
-        
-
-            <div className="mt-8 w-full max-w-md lg:hidden">
-              <BookRating 
-                bookId={book.id} 
-                initialAverageRating={book.average_rating || 0}
-                initialTotalRatings={book.total_ratings || 0}
-                variant="default"
-                isReadOnly={false} 
-              />
-            </div>
-</div>
+        </div>
       </div>
     </div>
   );
