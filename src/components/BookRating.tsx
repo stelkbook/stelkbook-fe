@@ -54,8 +54,10 @@ const BookRating: React.FC<BookRatingProps> = ({
         if (response.data.review) {
           setReview(response.data.review);
         }
-      } catch (err) {
-        console.error('Failed to fetch user rating', err);
+      } catch (err: any) {
+        if (err.response?.status !== 404) {
+            console.error('Failed to fetch user rating', err);
+        }
       } finally {
         setUserRatingLoading(false);
       }

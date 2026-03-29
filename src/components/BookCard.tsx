@@ -29,6 +29,29 @@ const BookCard = ({ book, onClick }: BookCardProps) => {
   const router = useRouter();
 
   const handleClick = () => {
+    try {
+      // 1. Update Riwayat Buku with Last Read Timestamp
+      const historyStr = localStorage.getItem('riwayat_buku');
+      let bookHistory = historyStr ? JSON.parse(historyStr) : [];
+      bookHistory = bookHistory.filter((b: any) => b.id !== book.id);
+      
+      const viewedBook = { ...book, last_read: new Date().toISOString() };
+      bookHistory.unshift(viewedBook);
+      
+      if (bookHistory.length > 50) bookHistory = bookHistory.slice(0, 50);
+      localStorage.setItem('riwayat_buku', JSON.stringify(bookHistory));
+
+      // 2. Track Book View for the Chart
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const viewsStr = localStorage.getItem('buku_view_history');
+      let viewsData = viewsStr ? JSON.parse(viewsStr) : {};
+      viewsData[today] = (viewsData[today] || 0) + 1;
+      localStorage.setItem('buku_view_history', JSON.stringify(viewsData));
+    } catch (e) {
+      console.error("Failed saving book history", e);
+    }
+
     if (onClick) {
       onClick();
     } else if (book.path) {
@@ -41,6 +64,11 @@ const BookCard = ({ book, onClick }: BookCardProps) => {
       e.preventDefault();
       handleClick();
     }
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return 'B';
+    return name.split(' ').slice(0, 3).map(w => w.charAt(0)).join('').toUpperCase();
   };
 
   return (
@@ -58,9 +86,10 @@ const BookCard = ({ book, onClick }: BookCardProps) => {
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 180px"
           className="object-cover rounded-lg"
+          unoptimized={true}
           onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = '/assets/default-cover.png';
+            (e.target as HTMLImageElement).onerror = null;
+            (e.target as HTMLImageElement).src = `https://placehold.co/400x400/cccccc/ffffff?text=${getInitials(book.judul)}`;
           }}
         />
         {/* Rating Badge Overlay */}

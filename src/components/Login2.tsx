@@ -55,6 +55,18 @@ function Login() {
             const user = await login(form);
             const role = user.role.toLowerCase();
 
+            // Track login history
+            try {
+                const d = new Date();
+                const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                const loginStr = localStorage.getItem('login_history');
+                let loginData = loginStr ? JSON.parse(loginStr) : {};
+                loginData[today] = (loginData[today] || 0) + 1;
+                localStorage.setItem('login_history', JSON.stringify(loginData));
+            } catch (e) {
+                console.error("Failed saving login history", e);
+            }
+
             switch (role) {
                 case 'admin':
                 case 'perpus':
