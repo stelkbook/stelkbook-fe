@@ -91,7 +91,7 @@ function GuruPageContent() {
   useEffect(() => {
     if (guruBooks) {
       const filteredBooks = guruBooks.filter((book: any) => {
-        const bookClass = book.kelas || book.kategori;
+        const bookClass = book.kelas;
         const matchesClass = activeFilters.kelas.length === 0 || (bookClass && activeFilters.kelas.includes(bookClass));
         const matchesSubject = activeFilters.mapel.length === 0 || (book.mapel && activeFilters.mapel.includes(book.mapel));
         const matchesPublisher = activeFilters.penerbit.length === 0 || (book.penerbit && activeFilters.penerbit.includes(book.penerbit));
@@ -110,7 +110,7 @@ function GuruPageContent() {
               cover: coverUrl,
               path: `/homepage_guru/Buku?id=${book.id}`,
               kategori: book.kategori,
-              kelas: book.kelas || book.kategori,
+              kelas: book.kelas,
               mapel: book.mapel,
               sekolah: book.sekolah,
               penerbit: book.penerbit,
@@ -210,7 +210,7 @@ function GuruPageContent() {
               </div>
               <div className="flex justify-center md:justify-end">
                  <div className="w-full max-w-lg">
-                    <ProgressChart data={chartData} title="Progres Mengajar" />
+                    <ProgressChart data={chartData} title="Kunjungan Buku" />
                  </div>
               </div>
             </div>

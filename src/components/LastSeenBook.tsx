@@ -78,7 +78,7 @@ const LastSeenBook: React.FC<LastSeenBookProps> = ({
         <div className="flex flex-wrap gap-2 mb-3">
           {kelas && <span className="bg-red-50 text-red-600 text-xs font-semibold px-2 py-1 rounded-md">{kelas}</span>}
           {mapel && <span className="bg-blue-50 text-blue-600 text-xs font-semibold px-2 py-1 rounded-md">{mapel}</span>}
-          {kategori && !mapel && !kelas && <span className="bg-gray-100 text-gray-600 text-xs font-semibold px-2 py-1 rounded-md">{kategori}</span>}
+          {kategori && <span className="bg-gray-100 text-gray-600 text-xs font-semibold px-2 py-1 rounded-md">{kategori}</span>}
         </div>
 
         <div className="mt-auto flex items-center text-xs text-gray-500 font-medium whitespace-nowrap">

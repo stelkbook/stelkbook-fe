@@ -108,7 +108,7 @@ function HomePage() {
           </div>
           <div className="flex justify-center md:justify-end">
              <div className="w-full max-w-lg">
-                <ProgressChart data={chartData} title="Progress Belajar" />
+                <ProgressChart data={chartData} title="Progress Membaca" />
              </div>
           </div>
         </div>

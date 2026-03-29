@@ -50,7 +50,7 @@ export default function ProgressChart({ data, title }: ProgressChartProps) {
                 <Line
                 type="linear"
                 dataKey="value"
-                name="Login/Hari"
+                name="Membaca Buku"
                 stroke="#22c55e" 
                 strokeWidth={2}
                 dot={{ 
