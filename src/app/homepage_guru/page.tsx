@@ -11,9 +11,8 @@ import SortFilter, { SortOption } from '@/components/SortFilter';
 import FilterCheckbox, { FilterState } from '@/components/FilterCheckbox';
 import BookCard from '@/components/BookCard';
 import { getStorageUrl } from '@/helpers/storage';
-import { Plus } from 'lucide-react';
-import UploadModal from './UploadBuku/UploadModal';
-
+import { Plus, BookUp } from 'lucide-react';
+import AjukanBukuModal from '@/components/AjukanBukuModal';
 
 interface Book {
   id: number;
@@ -143,7 +142,7 @@ function GuruPageContent() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      <UploadModal 
+      <AjukanBukuModal 
         isOpen={isUploadModalOpen} 
         onClose={() => setIsUploadModalOpen(false)} 
       />
@@ -158,8 +157,8 @@ function GuruPageContent() {
               onClick={() => setIsUploadModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-all shadow-md shadow-red-200 active:scale-95 group"
             >
-              <Plus size={16} className="group-hover:rotate-90 transition-transform duration-200" />
-              <span>Upload Buku</span>
+              <BookUp size={16} className="group-hover:-translate-y-1 transition-transform duration-200" />
+              <span>Ajukan Buku</span>
             </button>
           </div>
           <div className="flex gap-3">

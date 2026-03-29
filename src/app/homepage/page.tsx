@@ -1,15 +1,18 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/context/authContext';
 import useAuthMiddleware from '@/hooks/auth';
+import { BookUp } from 'lucide-react';
+import AjukanBukuModal from '@/components/AjukanBukuModal';
 
 function HomePage() {
   useAuthMiddleware();
   const router = useRouter();
   const { user } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     // Check if user is not null before accessing its properties
@@ -44,10 +47,23 @@ function HomePage() {
   return (
     <div className="min-h-screen p-4 bg-white">
       <Navbar />
+      
+      <AjukanBukuModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
+
       <header className="flex justify-between items-center pt-20 px-8">
         <div>
           <p className="text-xl font-semibold text-left font-poppins">Studi Anda</p>
         </div>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-all shadow-md shadow-red-200 active:scale-95 group"
+        >
+          <BookUp size={16} className="group-hover:-translate-y-1 transition-transform duration-200" />
+          <span>Ajukan Buku</span>
+        </button>
       </header>
 
       <main className="grid grid-cols-1 gap-6 md:grid-cols-2 pt-4">

@@ -75,12 +75,20 @@ const [guruSmkDetail, setGuruSmkDetail] = useState(null); // Data spesifik guru 
       } catch (error) {
         if (error.response && error.response.status === 401) {
             console.warn("Session expired, logging out.");
+            localStorage.removeItem('auth_token');
+            setUser(null);
+            router.push('/');
+        } else if (!error.response) {
+            console.error("Kesalahan jaringan (Backend mati?):", error.message);
+            // Jangan redirect ke '/' jika kesalahan jaringan, agar tidak loop
+            // Biarkan user tetap di halaman ini dengan state error
+            setUser(null);
         } else {
             console.error("Gagal mengambil data pengguna:", error);
+            localStorage.removeItem('auth_token');
+            setUser(null);
+            router.push('/');
         }
-        localStorage.removeItem('auth_token');
-        setUser(null);
-        router.push('/');
       } finally {
         setLoading(false);
       }

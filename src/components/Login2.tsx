@@ -42,23 +42,11 @@ function Login() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        if (name === 'kode') {
-            if (value !== '' && /[^0-9]/.test(value)) {
-                setKodeError('Wajib mengisikan hanya dengan angka!');
-            } else {
-                setKodeError('');
-            }
-        }
         setForm({ ...form, [name]: value });
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
-        if (form.kode !== '' && /[^0-9]/.test(form.kode)) {
-            setKodeError('Wajib mengisikan dengan angka!');
-            return;
-        }
 
         if (isSubmitting) return;
         setErrorMessage('');
